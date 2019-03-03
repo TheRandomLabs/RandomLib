@@ -1,0 +1,18 @@
+[
+	{
+		"modid": "randomlibtest",
+		"name": "RandomLib Test",
+		"description": "Test mod for RandomLib.",
+		"version": "${version}",
+		"mcversion": "${mcversion}",
+		"url": "https://minecraft.curseforge.com/projects/randompatches",
+		"updateJSON": "https://raw.githubusercontent.com/TheRandomLabs/RandomPatches/misc/versions.json",
+		"authorList": [
+			"TheRandomLabs"
+		],
+		"credits": "",
+		"logoFile": "assets/randomlibtest/logo.png",
+		"screenshots": [],
+		"dependencies": []
+	}
+]

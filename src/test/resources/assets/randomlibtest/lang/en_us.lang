@@ -1,0 +1,22 @@
+randomlibtest.config.flyingPigs=Flying Pigs
+randomlibtest.config.flyingPigs.flyingPigs=Flying pigs
+randomlibtest.config.flyingPigs.flyingPigRange=Flying pig range
+randomlibtest.config.flyingPigs.flyingPigItem=Flying pig item
+randomlibtest.config.flyingPigs.flyingPigColor=Flying pig color
+
+randomlibtest.config.color.white=White
+randomlibtest.config.color.orange=Orange
+randomlibtest.config.color.magenta=Magenta
+randomlibtest.config.color.lightBlue=Light blue
+randomlibtest.config.color.yellow=Yellow
+randomlibtest.config.color.lime=Lime
+randomlibtest.config.color.pink=Pink
+randomlibtest.config.color.gray=Gray
+randomlibtest.config.color.silver=Silver
+randomlibtest.config.color.cyan=Cyan
+randomlibtest.config.color.purple=Purple
+randomlibtest.config.color.blue=Blue
+randomlibtest.config.color.brown=Brown
+randomlibtest.config.color.green=Green
+randomlibtest.config.color.red=Red
+randomlibtest.config.color.black=Black
