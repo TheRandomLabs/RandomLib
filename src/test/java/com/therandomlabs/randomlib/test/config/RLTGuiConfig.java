@@ -4,9 +4,7 @@ import com.therandomlabs.randomlib.config.ConfigManager;
 import com.therandomlabs.randomlib.test.RandomLibTest;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.config.GuiConfig;
-import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = RandomLibTest.MOD_ID)
 public class RLTGuiConfig extends GuiConfig {
 	public RLTGuiConfig(GuiScreen parentScreen) {
 		super(

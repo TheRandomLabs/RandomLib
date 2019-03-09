@@ -16,7 +16,6 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.client.config.IConfigElement;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,11 +35,9 @@ public final class ConfigManager {
 			throw new IllegalArgumentException(clazz.getName() + " is not a configuration class");
 		}
 
+		//We have to assume it's valid since if this is being loaded before Minecraft Forge is
+		//initialized (i.e. in a coremod), Loader.isModLoaded cannot be called
 		final String modid = config.modid();
-
-		if(!Loader.isModLoaded(modid)) {
-			throw new IllegalArgumentException("Invalid mod ID: " + modid);
-		}
 
 		//Ensure path is valid by initializing it first
 		final String pathData = config.path();
