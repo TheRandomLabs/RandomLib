@@ -52,7 +52,7 @@ final class TRLCategory {
 		final boolean hasCategory = config.hasCategory(name);
 		final ConfigCategory category = config.getCategory(name);
 
-		//Backwards-compatibility - Forge's config annotation system has case insensitive
+		//Backwards compatibility - Forge's config annotation system has case insensitive
 		//category names, so old configs will still have lowercase category names
 		if(!hasCategory) {
 			final String lowerCase = name.toLowerCase(Locale.ENGLISH);
