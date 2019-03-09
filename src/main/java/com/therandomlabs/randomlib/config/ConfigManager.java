@@ -224,7 +224,11 @@ public final class ConfigManager {
 				throw new IllegalArgumentException(name + " is not public static non-final");
 			}
 
-			category.properties.add(new TRLProperty(category, name, field, comment));
+			try {
+				category.properties.add(new TRLProperty(category, name, field, comment));
+			} catch(RuntimeException ex) {
+				throw new ConfigException(name, ex);
+			}
 		}
 	}
 }

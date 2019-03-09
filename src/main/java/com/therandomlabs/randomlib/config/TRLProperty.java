@@ -160,13 +160,13 @@ final class TRLProperty {
 
 		if(min < smallestMin) {
 			throw new IllegalArgumentException(String.format(
-					"min is too small for property %s: %s < %s", name, min, smallestMin
+					"min is too small: %s < %s", min, smallestMin
 			));
 		}
 
 		if(max > largestMax) {
 			throw new IllegalArgumentException(String.format(
-					"max is too large for property %s: %s > %s", name, max, largestMax
+					"max is too large: %s > %s", max, largestMax
 			));
 		}
 
