@@ -17,6 +17,7 @@ import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.client.config.IConfigElement;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.StringUtils;
 
 public final class ConfigManager {
@@ -30,6 +31,7 @@ public final class ConfigManager {
 
 	private ConfigManager() {}
 
+	@SubscribeEvent
 	public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
 		MODID_TO_CONFIGS.computeIfAbsent(event.getModID(), id -> new ArrayList<>()).
 				forEach(data -> reloadFromConfig(data.clazz));
