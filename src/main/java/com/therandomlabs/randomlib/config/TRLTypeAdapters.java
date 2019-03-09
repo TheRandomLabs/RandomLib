@@ -650,12 +650,27 @@ public final class TRLTypeAdapters {
 			}
 		});
 
-		register(String.class, Property::getString);
+		register(String.class, new TRLTypeAdapter() {
+			@Override
+			public Object getValue(Property property) {
+				return property.getString();
+			}
+
+			@Override
+			public String asString(Object value) {
+				return value instanceof Enum ? ((Enum) value).name() : String.valueOf(value);
+			}
+		});
 
 		register(String[].class, new TRLTypeAdapter() {
 			@Override
 			public Object getValue(Property property) {
 				return property.getStringList();
+			}
+
+			@Override
+			public String asString(Object value) {
+				return value instanceof Enum ? ((Enum) value).name() : String.valueOf(value);
 			}
 
 			@Override

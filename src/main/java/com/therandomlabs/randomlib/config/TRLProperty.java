@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import com.therandomlabs.randomlib.TRLUtils;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
@@ -168,10 +169,41 @@ final class TRLProperty {
 		final Config.Blacklist blacklist = field.getAnnotation(Config.Blacklist.class);
 		this.blacklist = blacklist == null ? null : blacklist.value();
 
-		this.comment = comment;
-		commentOnDisk = comment; //TODO
+		if(isArray) {
+			for(Object element : TRLUtils.toBoxedArray(defaultValue)) {
+				if(ArrayUtils.contains(this.blacklist, adapter.asString(element))) {
+					throw new IllegalArgumentException("Default value is blacklisted");
+				}
+			}
+		} else if(ArrayUtils.contains(this.blacklist, adapter.asString(defaultValue))) {
+			throw new IllegalArgumentException("Default value is blacklisted");
+		}
 
-		//TODO ensure default value is not blacklisted
+		this.comment = comment;
+
+		final StringBuilder commentOnDisk = new StringBuilder(comment);
+
+		if(enumConstants != null) {
+			commentOnDisk.append("\nValid values:");
+
+			for(Enum element : enumConstants) {
+				commentOnDisk.append("\n").append(element.name());
+			}
+		}
+
+		commentOnDisk.append("\nDefault: ");
+
+		if(isArray) {
+			commentOnDisk.append(
+					Arrays.stream(TRLUtils.toBoxedArray(defaultValue)).
+							map(adapter::asString).
+							collect(Collectors.toList())
+			);
+		} else {
+			commentOnDisk.append(adapter.asString(defaultValue));
+		}
+
+		this.commentOnDisk = commentOnDisk.toString();
 	}
 
 	boolean exists(Configuration config) {
@@ -226,19 +258,18 @@ final class TRLProperty {
 		return property;
 	}
 
-	Object validate(Object value) {
+	Object validate(Object value, boolean isArray) {
 		if(isArray) {
+			final boolean primitive = !(value instanceof Object[]);
+			final Object[] boxedArray = TRLUtils.toBoxedArray(value);
 			final List<Object> filtered = new ArrayList<>();
 
-			for(Object element : (Object[]) value) {
-				if(ArrayUtils.contains(blacklist, adapter.asString(element))) {
-					filtered.add(defaultValue);
-				} else {
-					filtered.add(element);
-				}
+			for(Object element : boxedArray) {
+				filtered.add(validate(element, false));
 			}
 
-			return filtered.toArray(Arrays.copyOf((Object[]) value, 0));
+			final Object[] filteredArray = filtered.toArray(Arrays.copyOf(boxedArray, 0));
+			return primitive ? TRLUtils.toPrimitiveArray(filteredArray) : filteredArray;
 		} else if(ArrayUtils.contains(blacklist, adapter.asString(value))) {
 			return defaultValue;
 		}
@@ -251,6 +282,8 @@ final class TRLProperty {
 			} else if(number > max) {
 				number = max;
 			}
+
+			//TODO for some reason, this is not being set in the config
 
 			if(value instanceof Byte) {
 				return (byte) number;
@@ -305,7 +338,7 @@ final class TRLProperty {
 		final Property property = get(config);
 
 		if(enumConstants == null) {
-			field.set(null, validate(adapter.getValue(property)));
+			field.set(null, validate(adapter.getValue(property), isArray));
 			return property;
 		}
 

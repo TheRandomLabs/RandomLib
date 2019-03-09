@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
+//TODO don't load until after preInit
 public final class ResourceLocationTypeAdapter<V extends IForgeRegistryEntry<V>> implements
 		TRLTypeAdapter {
 	private final Class<V> registryEntryClass;

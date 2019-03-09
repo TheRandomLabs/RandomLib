@@ -28,6 +28,11 @@ public final class ConfigTest {
 		@Config.Property("The flying pig color.")
 		public static ConfigColor flyingPigColor = ConfigColor.BLUE;
 
+		@Config.Property("Test array property.")
+		public static int[] testArrayProperty = {
+				1, 3, 5, 7
+		};
+
 		public static void onReload() {
 			if(flyingPigItem == Items.APPLE) {
 				flyingPigRange++; //If this is above 3, then it will be reset to 3
