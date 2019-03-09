@@ -135,6 +135,9 @@ final class TRLProperty {
 		final Config.RangeInt rangeInt = field.getAnnotation(Config.RangeInt.class);
 		final Config.RangeDouble rangeDouble = field.getAnnotation(Config.RangeDouble.class);
 
+		double min = Double.MIN_VALUE;
+		double max = Double.MAX_VALUE;
+
 		if(rangeInt != null) {
 			if(rangeDouble != null) {
 				throw new IllegalArgumentException("Two ranges cannot be defined");
@@ -153,8 +156,13 @@ final class TRLProperty {
 			if(min > max) {
 				throw new IllegalArgumentException("min cannot be larger than max");
 			}
-		} else {
+		}
+
+		if(min == Double.MIN_VALUE) {
 			min = smallestMin;
+		}
+
+		if(max == Double.MAX_VALUE) {
 			max = largestMax;
 		}
 
@@ -169,6 +177,9 @@ final class TRLProperty {
 					"max is too large: %s > %s", max, largestMax
 			));
 		}
+
+		this.min = min;
+		this.max = max;
 
 		final Config.Blacklist blacklist = field.getAnnotation(Config.Blacklist.class);
 		this.blacklist = blacklist == null ? null : blacklist.value();
