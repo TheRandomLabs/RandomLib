@@ -135,8 +135,8 @@ public final class ConfigManager {
 
 	public static List<IConfigElement> getConfigElements(Class<?> clazz) {
 		final Configuration config = get(clazz);
-
 		return config.getCategoryNames().stream().
+				filter(name -> !name.contains(".")).
 				map(name -> new ConfigElement(config.getCategory(name))).
 				collect(Collectors.toList());
 	}

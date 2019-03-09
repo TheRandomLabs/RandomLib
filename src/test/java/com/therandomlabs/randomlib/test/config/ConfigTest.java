@@ -9,6 +9,14 @@ import net.minecraft.item.Item;
 @Config(modid = RandomLibTest.MOD_ID, path = RandomLibTest.MOD_ID + "/main")
 public final class ConfigTest {
 	public static final class FlyingPigs {
+		public static final class Lol {
+			@Config.Property("test")
+			public static boolean test = true;
+		}
+
+		@Config.Category("lol")
+		public static final Lol lol = null;
+
 		@Config.RequiresMCRestart
 		@Config.Property("Whether to enable flying pigs.")
 		public static boolean flyingPigs = true;
