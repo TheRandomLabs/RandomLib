@@ -159,11 +159,15 @@ final class TRLProperty {
 		}
 
 		if(min < smallestMin) {
-			throw new IllegalArgumentException("min is too small");
+			throw new IllegalArgumentException(String.format(
+					"min is too small for property %s: %s < %s", name, min, smallestMin
+			));
 		}
 
 		if(max > largestMax) {
-			throw new IllegalArgumentException("max is too large");
+			throw new IllegalArgumentException(String.format(
+					"max is too large for property %s: %s > %s", name, max, largestMax
+			));
 		}
 
 		final Config.Blacklist blacklist = field.getAnnotation(Config.Blacklist.class);
