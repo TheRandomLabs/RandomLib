@@ -297,8 +297,6 @@ final class TRLProperty {
 				number = max;
 			}
 
-			//TODO for some reason, this is not being set in the config
-
 			if(value instanceof Byte) {
 				return (byte) number;
 			}
@@ -329,22 +327,19 @@ final class TRLProperty {
 
 	Property serialize(Configuration config) throws IllegalAccessException {
 		final Property property = get(config);
+		final Object value = validate(field.get(null), isArray);
 
 		if(enumConstants == null) {
-			adapter.setValue(property, field.get(null));
+			adapter.setValue(property, value);
 			return property;
 		}
 
 		if(!isArray) {
-			property.setValue(((Enum) field.get(null)).name());
+			property.setValue(((Enum) value).name());
 			return property;
 		}
 
-		property.setValues(
-				Arrays.stream((Enum[]) field.get(null)).
-						map(Enum::name).
-						toArray(String[]::new)
-		);
+		property.setValues(Arrays.stream((Enum[]) value).map(Enum::name).toArray(String[]::new));
 		return property;
 	}
 
