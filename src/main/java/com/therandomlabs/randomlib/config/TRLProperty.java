@@ -10,6 +10,7 @@ import com.therandomlabs.randomlib.TRLUtils;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import net.minecraftforge.registries.IForgeRegistryEntry;
 import org.apache.commons.lang3.ArrayUtils;
 
 //Enums are implemented as a special case here instead of in TRLTypeAdapters
@@ -25,6 +26,7 @@ final class TRLProperty {
 	final TRLTypeAdapter adapter;
 	final Property.Type type;
 	final boolean isArray;
+	final boolean isResourceLocation;
 
 	final Class<?> enumClass;
 	final Enum[] enumConstants;
@@ -85,6 +87,7 @@ final class TRLProperty {
 
 		this.type = adapter.getType();
 		isArray = adapter.isArray();
+		isResourceLocation = IForgeRegistryEntry.class.isAssignableFrom(type);
 
 		Object defaultValue = null;
 
@@ -94,9 +97,10 @@ final class TRLProperty {
 			TRLUtils.crashReport("Failed to load default value of configuration property", ex);
 		}
 
-		if(defaultValue == null) {
+		if(defaultValue == null && !isResourceLocation) {
 			throw new IllegalArgumentException(
-					"Default value of configuration property may not be null"
+					"Default value of configuration property may not be null unless it is a " +
+							"registry entry"
 			);
 		}
 
@@ -294,13 +298,19 @@ final class TRLProperty {
 	}
 
 	Object validate(Object value, boolean isArray) {
+		if(value == null && !isResourceLocation) {
+			value = defaultValue;
+		}
+
 		if(isArray) {
 			final boolean primitive = !(value instanceof Object[]);
 			final Object[] boxedArray = TRLUtils.toBoxedArray(value);
 			final List<Object> filtered = new ArrayList<>();
 
 			for(Object element : boxedArray) {
-				filtered.add(validate(element, false));
+				if(element != null) {
+					filtered.add(validate(element, false));
+				}
 			}
 
 			final Object[] filteredArray = filtered.toArray(Arrays.copyOf(boxedArray, 0));

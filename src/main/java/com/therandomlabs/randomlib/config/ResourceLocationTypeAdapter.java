@@ -47,7 +47,7 @@ public final class ResourceLocationTypeAdapter<V extends IForgeRegistryEntry<V>>
 	@SuppressWarnings("unchecked")
 	@Override
 	public String asString(Object value) {
-		return ((V) value).getRegistryName().toString();
+		return value == null ? "" : ((V) value).getRegistryName().toString();
 	}
 
 	@Override

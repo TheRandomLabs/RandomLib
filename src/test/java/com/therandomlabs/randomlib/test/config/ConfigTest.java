@@ -44,6 +44,9 @@ public final class ConfigTest {
 				1, 3, 5, 7
 		};
 
+		@Config.Property("Null default item.")
+		public static Item nullDefaultItem;
+
 		public static void onReload() {
 			if(flyingPigItem == Items.APPLE) {
 				flyingPigRange++; //If this is above 3, then it will be reset to 3
