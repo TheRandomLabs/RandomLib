@@ -16,6 +16,7 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.client.config.IConfigElement;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,6 +28,12 @@ public final class ConfigManager {
 			TRLUtils.findField(Property.class, "comment") : null;
 
 	private ConfigManager() {}
+
+	public static void registerEventHandler() {
+		if(Loader.instance().activeModContainer() != null) {
+			MinecraftForge.EVENT_BUS.register(ConfigManager.class);
+		}
+	}
 
 	public static void register(Class<?> clazz) {
 		final Config config = clazz.getAnnotation(Config.class);
@@ -48,14 +55,11 @@ public final class ConfigManager {
 		loadCategories(modid + ".config.", "", clazz, categories);
 		final ConfigData data = new ConfigData(clazz, pathString, path, categories);
 
-		if(CONFIGS.isEmpty()) {
-			MinecraftForge.EVENT_BUS.register(ConfigManager.class);
-		}
-
 		CONFIGS.put(clazz, data);
 		MODID_TO_CONFIGS.computeIfAbsent(modid, id -> new ArrayList<>()).add(data);
 
 		reloadFromDisk(clazz);
+		registerEventHandler();
 	}
 
 	public static void reloadFromDisk(Class<?> clazz) {
