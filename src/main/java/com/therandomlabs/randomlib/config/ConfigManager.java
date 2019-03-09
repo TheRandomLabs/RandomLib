@@ -67,16 +67,18 @@ public final class ConfigManager {
 	public static void reloadFromConfig(Class<?> clazz) {
 		final ConfigData data = CONFIGS.get(clazz);
 
-		try {
-			for(TRLCategory category : data.categories) {
-				for(TRLProperty property : category.properties) {
-					if(property.exists(data.config)) {
+		for(TRLCategory category : data.categories) {
+			for(TRLProperty property : category.properties) {
+				if(property.exists(data.config)) {
+					try {
 						property.deserialize(data.config);
+					} catch(Exception ex) {
+						TRLUtils.crashReport(
+								"Failed to deserialize configuration property " + property.name, ex
+						);
 					}
 				}
 			}
-		} catch(IllegalAccessException ex) {
-			TRLUtils.crashReport("Failed to deserialize configuration property", ex);
 		}
 
 		writeToDisk(clazz);
@@ -91,16 +93,18 @@ public final class ConfigManager {
 
 		data.categories.forEach(category -> category.createPropertyOrder(data.config));
 
-		try {
-			for(TRLCategory category : data.categories) {
-				category.onReload();
+		for(TRLCategory category : data.categories) {
+			category.onReload();
 
-				for(TRLProperty property : category.properties) {
+			for(TRLProperty property : category.properties) {
+				try {
 					setComment(property.serialize(data.config), property.commentOnDisk);
+				} catch(Exception ex) {
+					TRLUtils.crashReport(
+							"Failed to serialize configuration property " + property.name, ex
+					);
 				}
 			}
-		} catch(IllegalAccessException ex) {
-			TRLUtils.crashReport("Failed to serialize configuration property", ex);
 		}
 
 		data.config.save();

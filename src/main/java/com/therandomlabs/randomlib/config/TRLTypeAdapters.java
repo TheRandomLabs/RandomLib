@@ -356,7 +356,7 @@ public final class TRLTypeAdapters {
 
 			@Override
 			public void setValue(Property property, Object value) {
-				property.setValue((double) value);
+				property.setValue((float) value);
 			}
 
 			@Override
