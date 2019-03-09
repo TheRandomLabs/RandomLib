@@ -26,7 +26,8 @@ public final class ConfigManager {
 	private static final Map<Class<?>, ConfigData> CONFIGS = new HashMap<>();
 	private static final Map<String, List<ConfigData>> MODID_TO_CONFIGS = new HashMap<>();
 
-	private static final Field MODID = TRLUtils.findField(ConfigChangedEvent.class, "modID");
+	private static final Field MODID = TRLUtils.MC_VERSION_NUMBER == 8 ?
+			TRLUtils.findField(ConfigChangedEvent.class, "modID") : null;
 	private static final Field COMMENT = TRLUtils.MC_VERSION_NUMBER == 8 ?
 			TRLUtils.findField(Property.class, "comment") : null;
 
