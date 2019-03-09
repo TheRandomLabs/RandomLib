@@ -15,6 +15,8 @@ import org.apache.commons.lang3.ArrayUtils;
 //Enums are implemented as a special case here instead of in TRLTypeAdapters
 //Numbers also receive some special treatment
 final class TRLProperty {
+	private static boolean canSetValidValuesDisplay = true;
+
 	final TRLCategory category;
 
 	final String name;
@@ -272,8 +274,12 @@ final class TRLProperty {
 
 		property.setValidValues(validValues);
 
-		if(TRLUtils.MC_VERSION_NUMBER > 11) {
-			property.setValidValuesDisplay(validValuesDisplay);
+		if(TRLUtils.MC_VERSION_NUMBER > 11 && canSetValidValuesDisplay) {
+			try {
+				property.setValidValuesDisplay(validValuesDisplay);
+			} catch(NoSuchMethodError e) {
+				canSetValidValuesDisplay = false;
+			}
 		}
 
 		if(defaultValue instanceof Double || defaultValue instanceof Float) {
