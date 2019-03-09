@@ -16,6 +16,6 @@ final class ConfigData {
 		this.pathString = pathString;
 		this.path = path;
 		this.categories = categories;
-		config = new Configuration(path.toFile());
+		config = new Configuration(path.toFile(), true);
 	}
 }
