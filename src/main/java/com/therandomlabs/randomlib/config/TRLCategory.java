@@ -13,6 +13,7 @@ import net.minecraftforge.common.config.Configuration;
 
 final class TRLCategory {
 	final String languageKeyPrefix;
+	final String languageKey;
 	final Class<?> clazz;
 	final String comment;
 	final String name;
@@ -22,9 +23,10 @@ final class TRLCategory {
 
 	TRLCategory(String languageKeyPrefix, Class<?> clazz, String comment, String name) {
 		this.languageKeyPrefix = languageKeyPrefix;
+		languageKey = languageKeyPrefix + name;
 		this.clazz = clazz;
 		this.comment = comment;
-		this.name = name;
+		this.name = TRLUtils.MC_VERSION_NUMBER == 8 ? name.toLowerCase(Locale.ENGLISH) : name;
 
 		onReload = TRLUtils.findMethod(clazz, "onReload");
 
@@ -64,7 +66,7 @@ final class TRLCategory {
 		}
 
 		config.setCategoryComment(name, comment);
-		config.setCategoryLanguageKey(name, languageKeyPrefix + name);
+		config.setCategoryLanguageKey(name, languageKey);
 
 		return category;
 	}
@@ -76,6 +78,6 @@ final class TRLCategory {
 	}
 
 	String getLanguageKeyPrefix() {
-		return languageKeyPrefix + name + ".";
+		return languageKey + ".";
 	}
 }

@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import com.therandomlabs.randomlib.TRLUtils;
@@ -190,13 +189,7 @@ public final class ConfigManager {
 				throw new IllegalArgumentException("Category comment may not be empty");
 			}
 
-			String name = field.getName();
-
-			if(TRLUtils.MC_VERSION_NUMBER == 8) {
-				//Forge 1.8 doesn't seem to like case sensitive category names
-				name = name.toLowerCase(Locale.ENGLISH);
-			}
-
+			final String name = field.getName();
 			final int modifiers = field.getModifiers();
 
 			if(!Modifier.isPublic(modifiers) || !Modifier.isStatic(modifiers) ||
