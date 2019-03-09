@@ -122,7 +122,7 @@ final class TRLProperty {
 			smallestMin = Byte.MIN_VALUE;
 			largestMax = Byte.MAX_VALUE;
 		} else if(defaultValue instanceof Float) {
-			smallestMin = Float.MIN_VALUE;
+			smallestMin = -Float.MAX_VALUE;
 			largestMax = Float.MAX_VALUE;
 		} else if(defaultValue instanceof Integer) {
 			smallestMin = Integer.MIN_VALUE;
@@ -134,14 +134,14 @@ final class TRLProperty {
 			smallestMin = Short.MIN_VALUE;
 			largestMax = Short.MAX_VALUE;
 		} else {
-			smallestMin = Double.MIN_VALUE;
+			smallestMin = -Double.MAX_VALUE;
 			largestMax = Double.MAX_VALUE;
 		}
 
 		final Config.RangeInt rangeInt = field.getAnnotation(Config.RangeInt.class);
 		final Config.RangeDouble rangeDouble = field.getAnnotation(Config.RangeDouble.class);
 
-		double min = Double.MIN_VALUE;
+		double min = -Double.MAX_VALUE;
 		double max = Double.MAX_VALUE;
 
 		if(rangeInt != null) {
@@ -164,7 +164,7 @@ final class TRLProperty {
 			}
 		}
 
-		if(min == Double.MIN_VALUE) {
+		if(min == -Double.MAX_VALUE) {
 			min = smallestMin;
 		}
 
