@@ -43,7 +43,8 @@ public final class ConfigManager {
 		}
 
 		//Ensure path is valid by initializing it first
-		final String pathString = "config/" + config.path() + ".cfg";
+		final String pathData = config.path();
+		final String pathString = "config/" + (pathData.isEmpty() ? modid : config.path()) + ".cfg";
 		final Path path = Paths.get(pathString).toAbsolutePath();
 
 		final List<TRLCategory> categories = new ArrayList<>();

@@ -54,5 +54,5 @@ public @interface Config {
 
 	String modid();
 
-	String path();
+	String path() default "";
 }
