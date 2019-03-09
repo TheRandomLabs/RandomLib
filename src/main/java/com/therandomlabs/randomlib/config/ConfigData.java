@@ -2,6 +2,7 @@ package com.therandomlabs.randomlib.config;
 
 import java.nio.file.Path;
 import java.util.List;
+import com.therandomlabs.randomlib.TRLUtils;
 import net.minecraftforge.common.config.Configuration;
 
 final class ConfigData {
@@ -16,6 +17,6 @@ final class ConfigData {
 		this.pathString = pathString;
 		this.path = path;
 		this.categories = categories;
-		config = new Configuration(path.toFile(), true);
+		config = new Configuration(path.toFile(), TRLUtils.MC_VERSION_NUMBER != 8);
 	}
 }
