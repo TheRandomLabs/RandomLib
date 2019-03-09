@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import com.therandomlabs.randomlib.TRLUtils;
 import net.minecraftforge.common.config.ConfigCategory;
@@ -48,7 +49,19 @@ final class TRLCategory {
 	}
 
 	ConfigCategory get(Configuration config) {
+		final boolean hasCategory = config.hasCategory(name);
 		final ConfigCategory category = config.getCategory(name);
+
+		//Backwards-compatibility - Forge's config annotation system has case insensitive
+		//category names, so old configs will still have lowercase category names
+		if(!hasCategory) {
+			final String lowerCase = name.toLowerCase(Locale.ENGLISH);
+
+			if(config.hasCategory(lowerCase)) {
+				final ConfigCategory oldCategory = config.getCategory(lowerCase);
+				category.putAll(oldCategory.getValues());
+			}
+		}
 
 		config.setCategoryComment(name, comment);
 		config.setCategoryLanguageKey(name, languageKeyPrefix + name);
