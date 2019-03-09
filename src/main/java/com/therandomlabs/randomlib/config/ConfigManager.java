@@ -17,10 +17,11 @@ import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.client.config.IConfigElement;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.StringUtils;
 
 public final class ConfigManager {
+	private static final ConfigManager INSTANCE = new ConfigManager();
+
 	private static final Map<Class<?>, ConfigData> CONFIGS = new HashMap<>();
 	private static final Map<String, List<ConfigData>> MODID_TO_CONFIGS = new HashMap<>();
 
@@ -29,9 +30,14 @@ public final class ConfigManager {
 
 	private ConfigManager() {}
 
+	public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
+		MODID_TO_CONFIGS.computeIfAbsent(event.getModID(), id -> new ArrayList<>()).
+				forEach(data -> reloadFromConfig(data.clazz));
+	}
+
 	public static void registerEventHandler() {
 		if(Loader.instance().activeModContainer() != null) {
-			MinecraftForge.EVENT_BUS.register(ConfigManager.class);
+			MinecraftForge.EVENT_BUS.register(INSTANCE);
 		}
 	}
 
@@ -166,12 +172,6 @@ public final class ConfigManager {
 		} catch(Exception ex) {
 			TRLUtils.crashReport("Error while setting configuration property comment", ex);
 		}
-	}
-
-	@SubscribeEvent
-	public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
-		MODID_TO_CONFIGS.computeIfAbsent(event.getModID(), id -> new ArrayList<>()).
-				forEach(data -> reloadFromConfig(data.clazz));
 	}
 
 	private static void loadCategories(String languageKeyPrefix, String parentCategory,
