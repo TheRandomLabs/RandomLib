@@ -28,7 +28,10 @@ public final class ConfigTest {
 		@Config.Property("The flying pig color.")
 		public static ConfigColor flyingPigColor = ConfigColor.BLUE;
 
-		@Config.Property("Test array property.")
+		@Config.Property({
+				"Test array property.",
+				"Add integers to this array."
+		})
 		public static int[] testArrayProperty = {
 				1, 3, 5, 7
 		};

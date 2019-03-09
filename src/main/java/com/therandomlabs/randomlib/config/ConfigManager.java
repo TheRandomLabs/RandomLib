@@ -18,6 +18,7 @@ import net.minecraftforge.fml.client.config.IConfigElement;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.apache.commons.lang3.StringUtils;
 
 public final class ConfigManager {
 	private static final Map<Class<?>, ConfigData> CONFIGS = new HashMap<>();
@@ -176,7 +177,7 @@ public final class ConfigManager {
 				continue;
 			}
 
-			final String comment = categoryData.value();
+			final String comment = StringUtils.join(categoryData.value(), "\n");
 
 			if(comment.trim().isEmpty()) {
 				throw new IllegalArgumentException("Category comment may not be empty");
@@ -211,7 +212,7 @@ public final class ConfigManager {
 				continue;
 			}
 
-			final String comment = propertyData.value();
+			final String comment = StringUtils.join(propertyData.value(), "\n");
 
 			if(comment.trim().isEmpty()) {
 				throw new IllegalArgumentException("Property comment may not be empty");

@@ -191,6 +191,20 @@ final class TRLProperty {
 			}
 		}
 
+		if(defaultValue instanceof Number) {
+			if(defaultValue instanceof Double || defaultValue instanceof Float) {
+				commentOnDisk.append("\nMin: ").
+						append(min).
+						append("\nMax: ").
+						append(max);
+			} else {
+				commentOnDisk.append("\nMin: ").
+						append((long) min).
+						append("\nMax: ").
+						append((long) max);
+			}
+		}
+
 		commentOnDisk.append("\nDefault: ");
 
 		if(isArray) {

@@ -12,7 +12,7 @@ public @interface Config {
 	@Target(ElementType.FIELD)
 	@interface Category {
 		//Comment
-		String value();
+		String[] value();
 	}
 
 	@Retention(RetentionPolicy.RUNTIME)
@@ -49,7 +49,7 @@ public @interface Config {
 	@Target(ElementType.FIELD)
 	@interface Property {
 		//Comment
-		String value();
+		String[] value();
 	}
 
 	String modid();
