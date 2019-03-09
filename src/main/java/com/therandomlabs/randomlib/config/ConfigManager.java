@@ -26,6 +26,7 @@ public final class ConfigManager {
 	private static final Map<Class<?>, ConfigData> CONFIGS = new HashMap<>();
 	private static final Map<String, List<ConfigData>> MODID_TO_CONFIGS = new HashMap<>();
 
+	private static final Field MODID = TRLUtils.findField(ConfigChangedEvent.class, "modID");
 	private static final Field COMMENT = TRLUtils.MC_VERSION_NUMBER == 8 ?
 			TRLUtils.findField(Property.class, "comment") : null;
 
@@ -33,7 +34,19 @@ public final class ConfigManager {
 
 	@SubscribeEvent
 	public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
-		MODID_TO_CONFIGS.computeIfAbsent(event.getModID(), id -> new ArrayList<>()).
+		String modid = null;
+
+		if(TRLUtils.MC_VERSION_NUMBER == 8) {
+			try {
+				modid = (String) MODID.get(event);
+			} catch(IllegalAccessException ex) {
+				TRLUtils.crashReport("Failed to retrieve mod ID", ex);
+			}
+		} else {
+			modid = event.getModID();
+		}
+
+		MODID_TO_CONFIGS.computeIfAbsent(modid, id -> new ArrayList<>()).
 				forEach(data -> reloadFromConfig(data.clazz));
 	}
 
