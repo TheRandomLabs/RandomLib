@@ -248,8 +248,11 @@ public final class ConfigManager {
 				throw new IllegalArgumentException(name + " is not public static non-final");
 			}
 
+			final Config.Previous previousData = field.getAnnotation(Config.Previous.class);
+			final String previous = previousData == null ? null : previousData.value();
+
 			try {
-				category.properties.add(new TRLProperty(category, name, field, comment));
+				category.properties.add(new TRLProperty(category, name, field, comment, previous));
 			} catch(RuntimeException ex) {
 				throw new ConfigException(name, ex);
 			}

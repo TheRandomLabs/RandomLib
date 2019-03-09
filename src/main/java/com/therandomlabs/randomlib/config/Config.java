@@ -52,6 +52,13 @@ public @interface Config {
 		String[] value();
 	}
 
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	@interface Previous {
+		//Previous name
+		String value();
+	}
+
 	String modid();
 
 	String path() default "";

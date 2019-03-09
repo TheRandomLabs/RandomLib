@@ -12,6 +12,7 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 //Enums are implemented as a special case here instead of in TRLTypeAdapters
 //Numbers also receive some special treatment
@@ -22,6 +23,9 @@ final class TRLProperty {
 
 	final String name;
 	final Field field;
+
+	final String previousName;
+	final String previousCategory;
 
 	final TRLTypeAdapter adapter;
 	final Property.Type type;
@@ -47,11 +51,20 @@ final class TRLProperty {
 	final String commentOnDisk;
 
 	@SuppressWarnings("unchecked")
-	TRLProperty(TRLCategory category, String name, Field field, String comment) {
+	TRLProperty(TRLCategory category, String name, Field field, String comment, String previous) {
 		this.category = category;
 
 		this.name = name;
 		this.field = field;
+
+		if(previous == null) {
+			previousName = null;
+			previousCategory = null;
+		} else {
+			final String[] data = StringUtils.split(previous, '.');
+			previousName = data[data.length - 1];
+			previousCategory = StringUtils.join(data, '.', 0, data.length - 1);
+		}
 
 		final Class<?> type = field.getType();
 
@@ -242,7 +255,16 @@ final class TRLProperty {
 	}
 
 	boolean exists(Configuration config) {
-		return config.getCategory(category.name).get(name) != null;
+		return config.getCategory(category.name).get(name) != null || getPrevious(config) != null;
+	}
+
+	Property getPrevious(Configuration config) {
+		if(previousName == null || !config.hasCategory(previousCategory)) {
+			return null;
+		}
+
+		final Property property = config.getCategory(previousCategory).get(previousName);
+		return property != null && property.getType() == type ? property : null;
 	}
 
 	Property get(Configuration config) {
@@ -250,10 +272,14 @@ final class TRLProperty {
 		Property property = category.get(name);
 
 		if(property == null) {
-			if(isArray) {
-				property = new Property(name, new String[0], type);
-			} else {
-				property = new Property(name, (String) null, type);
+			property = getPrevious(config);
+
+			if(property == null) {
+				if(isArray) {
+					property = new Property(name, new String[0], type);
+				} else {
+					property = new Property(name, (String) null, type);
+				}
 			}
 
 			category.put(name, property);

@@ -47,6 +47,10 @@ public final class ConfigTest {
 		@Config.Property("Null default item.")
 		public static Item nullDefaultItem;
 
+		@Config.Previous("flyingPigs.whereDidHeComeFrom")
+		@Config.Property("Where did he come from, where did he go?")
+		public static boolean whereDidHeGo;
+
 		public static void onReload() {
 			if(flyingPigItem == Items.APPLE) {
 				flyingPigRange++; //If this is above 3, then it will be reset to 3
