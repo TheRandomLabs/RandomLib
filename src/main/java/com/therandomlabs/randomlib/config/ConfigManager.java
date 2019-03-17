@@ -20,6 +20,7 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.StringUtils;
 
+//TODO do not load ResourceLocationTypeAdapter until after preInit
 public final class ConfigManager {
 	private static final ConfigManager INSTANCE = new ConfigManager();
 

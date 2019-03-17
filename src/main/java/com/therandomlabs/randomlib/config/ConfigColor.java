@@ -40,6 +40,6 @@ public enum ConfigColor {
 	}
 
 	public static void setTranslationKeyPrefix(String prefix) {
-		translationKeyPrefix = "randomlibtest.config.color.";
+		translationKeyPrefix = prefix;
 	}
 }
