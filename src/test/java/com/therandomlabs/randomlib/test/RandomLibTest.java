@@ -4,6 +4,7 @@ import com.therandomlabs.randomlib.config.ConfigColor;
 import com.therandomlabs.randomlib.config.ConfigManager;
 import com.therandomlabs.randomlib.test.config.ConfigTest;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,5 +26,10 @@ public final class RandomLibTest {
 	public static void preInit(FMLPreInitializationEvent event) {
 		ConfigColor.setTranslationKeyPrefix("randomlibtest.config.color.");
 		ConfigManager.register(ConfigTest.class);
+	}
+
+	@Mod.EventHandler
+	public static void init(FMLInitializationEvent event) {
+		ConfigManager.reloadFromDisk(ConfigTest.class);
 	}
 }

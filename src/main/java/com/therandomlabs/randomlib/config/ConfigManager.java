@@ -20,7 +20,6 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.StringUtils;
 
-//TODO do not load ResourceLocationTypeAdapter until after preInit
 public final class ConfigManager {
 	private static final ConfigManager INSTANCE = new ConfigManager();
 
@@ -98,7 +97,22 @@ public final class ConfigManager {
 			for(TRLProperty property : category.properties) {
 				if(property.exists(data.config)) {
 					try {
-						property.deserialize(data.config);
+						if(property.adapter.shouldLoad()) {
+							final String delayedLoad = data.delayedLoad.get(property.languageKey);
+
+							if(delayedLoad != null) {
+								property.get(data.config).set(delayedLoad);
+								data.delayedLoad.remove(property.languageKey);
+							}
+
+							property.deserialize(data.config);
+						} else {
+							//Mainly for ResourceLocations so that if a modded ResourceLocation
+							//is loaded too early, it isn't reset in the config
+							data.delayedLoad.put(
+									property.languageKey, property.get(data.config).getString()
+							);
+						}
 					} catch(Exception ex) {
 						TRLUtils.crashReport(
 								"Failed to deserialize configuration property " + property.name, ex
@@ -125,7 +139,14 @@ public final class ConfigManager {
 
 			for(TRLProperty property : category.properties) {
 				try {
-					setComment(property.serialize(data.config), property.commentOnDisk);
+					final Property configProperty = property.serialize(data.config);
+					setComment(configProperty, property.commentOnDisk);
+
+					final String delayedLoad = data.delayedLoad.get(property.languageKey);
+
+					if(delayedLoad != null) {
+						configProperty.set(delayedLoad);
+					}
 				} catch(Exception ex) {
 					TRLUtils.crashReport(
 							"Failed to serialize configuration property " + property.name, ex

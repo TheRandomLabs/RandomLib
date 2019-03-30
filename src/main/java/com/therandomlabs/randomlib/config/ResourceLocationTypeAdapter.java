@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Property;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.LoaderState;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistryEntry;
@@ -58,5 +60,10 @@ public final class ResourceLocationTypeAdapter<V extends IForgeRegistryEntry<V>>
 	@Override
 	public boolean isArray() {
 		return isArray;
+	}
+
+	@Override
+	public boolean shouldLoad() {
+		return Loader.instance().hasReachedState(LoaderState.INITIALIZATION);
 	}
 }

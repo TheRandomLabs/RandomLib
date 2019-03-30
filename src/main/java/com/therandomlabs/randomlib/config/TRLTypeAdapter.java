@@ -41,4 +41,8 @@ public interface TRLTypeAdapter {
 	default boolean isArray() {
 		return false;
 	}
+
+	default boolean shouldLoad() {
+		return true;
+	}
 }

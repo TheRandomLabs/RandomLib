@@ -1,7 +1,9 @@
 package com.therandomlabs.randomlib.config;
 
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import com.therandomlabs.randomlib.TRLUtils;
 import net.minecraftforge.common.config.Configuration;
 
@@ -11,6 +13,7 @@ final class ConfigData {
 	final Path path;
 	final List<TRLCategory> categories;
 	final Configuration config;
+	final Map<String, String> delayedLoad = new HashMap<>();
 
 	ConfigData(Class<?> clazz, String pathString, Path path, List<TRLCategory> categories) {
 		this.clazz = clazz;

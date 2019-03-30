@@ -24,6 +24,8 @@ final class TRLProperty {
 	final String name;
 	final Field field;
 
+	final String languageKey;
+
 	final String previousName;
 	final String previousCategory;
 
@@ -56,6 +58,8 @@ final class TRLProperty {
 
 		this.name = name;
 		this.field = field;
+
+		languageKey = this.category.getLanguageKeyPrefix() + name;
 
 		if(previous == null) {
 			previousName = null;
@@ -286,7 +290,7 @@ final class TRLProperty {
 		}
 
 		ConfigManager.setComment(property, comment);
-		property.setLanguageKey(this.category.getLanguageKeyPrefix() + name);
+		property.setLanguageKey(languageKey);
 
 		if(enumClass == null) {
 			adapter.setDefaultValue(property, defaultValue);
