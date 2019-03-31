@@ -26,6 +26,7 @@ public final class ConfigTest {
 		@Config.Property("The flying pig range.")
 		public static int flyingPigRange = 3;
 
+		@Config.NonNull
 		@Config.Blacklist({
 				"minecraft:air",
 				"minecraft:stick"

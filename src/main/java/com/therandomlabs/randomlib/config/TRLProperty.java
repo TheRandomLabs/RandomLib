@@ -41,6 +41,8 @@ final class TRLProperty {
 
 	final Object defaultValue;
 
+	final boolean nonNull;
+
 	final boolean requiresMCRestart;
 	final boolean requiresWorldReload;
 
@@ -114,10 +116,12 @@ final class TRLProperty {
 			TRLUtils.crashReport("Failed to load default value of configuration property", ex);
 		}
 
-		if(defaultValue == null && !isResourceLocation) {
+		nonNull = field.getAnnotation(Config.NonNull.class) != null;
+
+		if(defaultValue == null && (!isResourceLocation || nonNull)) {
 			throw new IllegalArgumentException(
 					"Default value of configuration property may not be null unless it is a " +
-							"registry entry"
+							"registry entry without the @Config.NonNull annotation"
 			);
 		}
 
@@ -408,7 +412,14 @@ final class TRLProperty {
 		final Property property = get(config);
 
 		if(enumConstants == null) {
-			field.set(null, validate(adapter.getValue(property), isArray));
+			final Object value = adapter.getValue(property);
+
+			if(nonNull && value == null) {
+				field.set(null, defaultValue);
+			} else {
+				field.set(null, validate(value, isArray));
+			}
+
 			return property;
 		}
 

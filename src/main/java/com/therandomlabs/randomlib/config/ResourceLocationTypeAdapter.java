@@ -41,7 +41,13 @@ public final class ResourceLocationTypeAdapter<V extends IForgeRegistryEntry<V>>
 			return values.toArray((V[]) Array.newInstance(registryEntryClass, 0));
 		}
 
-		final V object = registry.getValue(new ResourceLocation(property.getString()));
+		final String location = property.getString();
+
+		if(location.isEmpty()) {
+			return null;
+		}
+
+		final V object = registry.getValue(new ResourceLocation(location));
 		return object == null ?
 				registry.getValue(new ResourceLocation(property.getDefault())) : object;
 	}

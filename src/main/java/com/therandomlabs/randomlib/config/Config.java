@@ -54,6 +54,10 @@ public @interface Config {
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
+	@interface NonNull {}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
 	@interface Previous {
 		//Previous name
 		String value();
