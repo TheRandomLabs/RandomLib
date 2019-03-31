@@ -101,6 +101,7 @@ public final class ConfigManager {
 							final String delayedLoad = data.delayedLoad.get(property.languageKey);
 
 							if(delayedLoad != null) {
+								property.reloadDefault();
 								property.get(data.config).set(delayedLoad);
 								data.delayedLoad.remove(property.languageKey);
 							}

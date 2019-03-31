@@ -10,6 +10,8 @@ import com.therandomlabs.randomlib.TRLUtils;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +41,7 @@ final class TRLProperty {
 	final String[] validValues;
 	final String[] validValuesDisplay;
 
-	final Object defaultValue;
+	Object defaultValue;
 
 	final boolean nonNull;
 
@@ -260,6 +262,33 @@ final class TRLProperty {
 		}
 
 		this.commentOnDisk = commentOnDisk.toString();
+	}
+
+	//For registry entries, the default value might be registry replaced after the property
+	//is initialized
+	@SuppressWarnings("unchecked")
+	void reloadDefault() {
+		if(!isArray) {
+			final IForgeRegistry registry = GameRegistry.findRegistry(
+					(Class<? extends IForgeRegistryEntry>) defaultValue.getClass()
+			);
+			defaultValue = registry.getValue(((IForgeRegistryEntry) defaultValue).getRegistryName());
+			return;
+		}
+
+		final Object[] oldDefaults = (Object[]) defaultValue;
+		final List<Object> newDefaults = new ArrayList<>(oldDefaults.length);
+		final IForgeRegistry registry = GameRegistry.findRegistry(
+				(Class<? extends IForgeRegistryEntry>) defaultValue.getClass().getComponentType()
+		);
+
+		for(Object oldDefault : oldDefaults) {
+			newDefaults.add(
+					registry.getValue(((IForgeRegistryEntry) oldDefault).getRegistryName())
+			);
+		}
+
+		defaultValue = newDefaults.toArray(Arrays.copyOf(oldDefaults, 0));
 	}
 
 	boolean exists(Configuration config) {
