@@ -269,11 +269,15 @@ final class TRLProperty {
 	//is initialized
 	@SuppressWarnings("unchecked")
 	void reloadDefault() {
-		if(!isArray && defaultValue != null) {
-			final IForgeRegistry registry = GameRegistry.findRegistry(
-					(Class<? extends IForgeRegistryEntry>) clazz
-			);
-			defaultValue = registry.getValue(((IForgeRegistryEntry) defaultValue).getRegistryName());
+		if(!isArray) {
+			if(defaultValue != null) {
+				final IForgeRegistry registry = GameRegistry.findRegistry(
+						(Class<? extends IForgeRegistryEntry>) clazz
+				);
+				defaultValue =
+						registry.getValue(((IForgeRegistryEntry) defaultValue).getRegistryName());
+			}
+
 			return;
 		}
 
