@@ -32,6 +32,7 @@ final class TRLProperty {
 	final String previousCategory;
 
 	final TRLTypeAdapter adapter;
+	final Class<?> clazz;
 	final Property.Type type;
 	final boolean isArray;
 	final boolean isResourceLocation;
@@ -74,17 +75,17 @@ final class TRLProperty {
 			previousCategory = StringUtils.join(data, '.', 0, data.length - 1);
 		}
 
-		final Class<?> type = field.getType();
+		clazz = field.getType();
 
-		if(Enum.class.isAssignableFrom(type)) {
-			enumClass = type;
+		if(Enum.class.isAssignableFrom(clazz)) {
+			enumClass = clazz;
 			adapter = TRLTypeAdapters.get(String.class);
-		} else if(Enum[].class.isAssignableFrom(type)) {
-			enumClass = type.getComponentType();
+		} else if(Enum[].class.isAssignableFrom(clazz)) {
+			enumClass = clazz.getComponentType();
 			adapter = TRLTypeAdapters.get(String[].class);
 		} else {
 			enumClass = null;
-			adapter = TRLTypeAdapters.get(type);
+			adapter = TRLTypeAdapters.get(clazz);
 		}
 
 		if(enumClass == null) {
@@ -106,9 +107,9 @@ final class TRLProperty {
 			this.validValuesDisplay = validValuesDisplay.toArray(new String[0]);
 		}
 
-		this.type = adapter.getType();
+		type = adapter.getType();
 		isArray = adapter.isArray();
-		isResourceLocation = IForgeRegistryEntry.class.isAssignableFrom(type);
+		isResourceLocation = IForgeRegistryEntry.class.isAssignableFrom(clazz);
 
 		Object defaultValue = null;
 
@@ -268,9 +269,9 @@ final class TRLProperty {
 	//is initialized
 	@SuppressWarnings("unchecked")
 	void reloadDefault() {
-		if(!isArray) {
+		if(!isArray && defaultValue != null) {
 			final IForgeRegistry registry = GameRegistry.findRegistry(
-					(Class<? extends IForgeRegistryEntry>) defaultValue.getClass()
+					(Class<? extends IForgeRegistryEntry>) clazz
 			);
 			defaultValue = registry.getValue(((IForgeRegistryEntry) defaultValue).getRegistryName());
 			return;
@@ -279,7 +280,7 @@ final class TRLProperty {
 		final Object[] oldDefaults = (Object[]) defaultValue;
 		final List<Object> newDefaults = new ArrayList<>(oldDefaults.length);
 		final IForgeRegistry registry = GameRegistry.findRegistry(
-				(Class<? extends IForgeRegistryEntry>) defaultValue.getClass().getComponentType()
+				(Class<? extends IForgeRegistryEntry>) clazz.getComponentType()
 		);
 
 		for(Object oldDefault : oldDefaults) {

@@ -116,7 +116,9 @@ public final class ConfigManager {
 						}
 					} catch(Exception ex) {
 						TRLUtils.crashReport(
-								"Failed to deserialize configuration property " + property.name, ex
+								"Failed to deserialize configuration property " +
+										property.languageKey,
+								ex
 						);
 					}
 				}
@@ -150,7 +152,7 @@ public final class ConfigManager {
 					}
 				} catch(Exception ex) {
 					TRLUtils.crashReport(
-							"Failed to serialize configuration property " + property.name, ex
+							"Failed to serialize configuration property " + property.languageKey, ex
 					);
 				}
 			}
