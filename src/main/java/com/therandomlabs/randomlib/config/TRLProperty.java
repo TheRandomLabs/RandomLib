@@ -176,12 +176,28 @@ final class TRLProperty {
 			min = rangeInt.min();
 			max = rangeInt.max();
 
+			if(min == Integer.MIN_VALUE && min < smallestMin) {
+				min = smallestMin;
+			}
+
+			if(max == Integer.MAX_VALUE && max > largestMax) {
+				max = largestMax;
+			}
+
 			if(min > max) {
 				throw new IllegalArgumentException("min cannot be larger than max");
 			}
 		} else if(rangeDouble != null) {
 			min = rangeDouble.min();
 			max = rangeDouble.max();
+
+			if(min == -Double.MAX_VALUE) {
+				min = smallestMin;
+			}
+
+			if(max == Double.MAX_VALUE) {
+				max = largestMax;
+			}
 
 			if(min > max) {
 				throw new IllegalArgumentException("min cannot be larger than max");

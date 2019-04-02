@@ -31,7 +31,8 @@ public final class ResourceLocationTypeAdapter<V extends IForgeRegistryEntry<V>>
 			final List<V> values = new ArrayList<>(array.length);
 
 			for(String element : array) {
-				final V object = registry.getValue(new ResourceLocation(element));
+				final V object =
+						registry.getValue(new ResourceLocation(element.replaceAll("\\s", "")));
 
 				if(object != null) {
 					values.add(object);
@@ -47,7 +48,7 @@ public final class ResourceLocationTypeAdapter<V extends IForgeRegistryEntry<V>>
 			return null;
 		}
 
-		final V object = registry.getValue(new ResourceLocation(location));
+		final V object = registry.getValue(new ResourceLocation(location.replaceAll("\\s", "")));
 		return object == null ?
 				registry.getValue(new ResourceLocation(property.getDefault())) : object;
 	}
