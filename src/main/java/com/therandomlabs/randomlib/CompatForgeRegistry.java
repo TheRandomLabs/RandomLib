@@ -12,6 +12,9 @@ public class CompatForgeRegistry<K> {
 			TRLUtils.MC_VERSION_NUMBER > 11 ? IForgeRegistry.class :
 					TRLUtils.getClass("net.minecraftforge.fml.common.registry.IForgeRegistry");
 
+	private static final Method FIND_REGISTRY = TRLUtils.MC_VERSION_NUMBER > 11 ? null :
+			TRLUtils.findMethod(GameRegistry.class, "findRegistry", CompatForgeRegistryEntry.CLASS);
+
 	private static final Method GET_VALUE = TRLUtils.MC_VERSION_NUMBER > 11 ?
 			null : TRLUtils.findMethod(CLASS, "getValue", ResourceLocation.class);
 
@@ -46,8 +49,18 @@ public class CompatForgeRegistry<K> {
 
 	@SuppressWarnings("unchecked")
 	public static <K> CompatForgeRegistry<K> findRegistry(Class<K> clazz) {
-		return new CompatForgeRegistry(
-				GameRegistry.findRegistry((Class<? extends IForgeRegistryEntry>) clazz)
-		);
+		if(TRLUtils.MC_VERSION_NUMBER > 11) {
+			return new CompatForgeRegistry(
+					GameRegistry.findRegistry((Class<? extends IForgeRegistryEntry>) clazz)
+			);
+		}
+
+		try {
+			return new CompatForgeRegistry<>(FIND_REGISTRY.invoke(null, clazz));
+		} catch(IllegalAccessException | InvocationTargetException ex) {
+			TRLUtils.crashReport("Failed to get Forge registry: " + clazz.getName(), ex);
+		}
+
+		return null;
 	}
 }
