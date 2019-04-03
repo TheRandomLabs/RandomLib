@@ -11,7 +11,7 @@ public class CompatForgeRegistryEntry {
 					TRLUtils.getClass("net.minecraftforge.fml.common.registry.IForgeRegistryEntry");
 
 	private static final Method GET_REGISTRY_NAME = TRLUtils.MC_VERSION_NUMBER > 11 ?
-			null : TRLUtils.findMethod(CLASS, "getRegistryName", ResourceLocation.class);
+			null : TRLUtils.findMethod(CLASS, "getRegistryName");
 
 	private final Object entry;
 
