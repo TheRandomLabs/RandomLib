@@ -45,6 +45,9 @@ public final class ConfigTest {
 				1, 3, 5, 7
 		};
 
+		@Config.Property("Test item array property.")
+		public static Item[] testItemArrayProperty = {};
+
 		@Config.Property("Null default item.")
 		public static Item nullDefaultItem;
 

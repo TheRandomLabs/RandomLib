@@ -134,6 +134,14 @@ public final class TRLUtils {
 		return null;
 	}
 
+	public static Class<?> getClass(String name) {
+		try {
+			return Class.forName(name);
+		} catch(ClassNotFoundException ignored) {}
+
+		return null;
+	}
+
 	public static void crashReport(String message, Throwable throwable) {
 		throw new ReportedException(new CrashReport(message, throwable));
 	}

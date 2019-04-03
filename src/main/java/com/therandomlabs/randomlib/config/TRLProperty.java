@@ -6,13 +6,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.therandomlabs.randomlib.CompatForgeRegistry;
+import com.therandomlabs.randomlib.CompatForgeRegistryEntry;
 import com.therandomlabs.randomlib.TRLUtils;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
-import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -109,7 +108,7 @@ final class TRLProperty {
 
 		type = adapter.getType();
 		isArray = adapter.isArray();
-		isResourceLocation = IForgeRegistryEntry.class.isAssignableFrom(clazz);
+		isResourceLocation = CompatForgeRegistryEntry.CLASS.isAssignableFrom(clazz);
 
 		Object defaultValue = null;
 
@@ -283,15 +282,13 @@ final class TRLProperty {
 
 	//For registry entries, the default value might be registry replaced after the property
 	//is initialized
-	@SuppressWarnings("unchecked")
 	void reloadDefault() {
 		if(!isArray) {
 			if(defaultValue != null) {
-				final IForgeRegistry registry = GameRegistry.findRegistry(
-						(Class<? extends IForgeRegistryEntry>) clazz
+				final CompatForgeRegistry registry = CompatForgeRegistry.findRegistry(clazz);
+				defaultValue = registry.getValue(
+						new CompatForgeRegistryEntry(defaultValue).getRegistryName()
 				);
-				defaultValue =
-						registry.getValue(((IForgeRegistryEntry) defaultValue).getRegistryName());
 			}
 
 			return;
@@ -299,13 +296,12 @@ final class TRLProperty {
 
 		final Object[] oldDefaults = (Object[]) defaultValue;
 		final List<Object> newDefaults = new ArrayList<>(oldDefaults.length);
-		final IForgeRegistry registry = GameRegistry.findRegistry(
-				(Class<? extends IForgeRegistryEntry>) clazz.getComponentType()
-		);
+		final CompatForgeRegistry registry =
+				CompatForgeRegistry.findRegistry(clazz.getComponentType());
 
 		for(Object oldDefault : oldDefaults) {
 			newDefaults.add(
-					registry.getValue(((IForgeRegistryEntry) oldDefault).getRegistryName())
+					registry.getValue(new CompatForgeRegistryEntry(oldDefault).getRegistryName())
 			);
 		}
 

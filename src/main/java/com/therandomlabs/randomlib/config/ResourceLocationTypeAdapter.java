@@ -3,23 +3,21 @@ package com.therandomlabs.randomlib.config;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import com.therandomlabs.randomlib.CompatForgeRegistry;
+import com.therandomlabs.randomlib.CompatForgeRegistryEntry;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.LoaderState;
-import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
-public final class ResourceLocationTypeAdapter<V extends IForgeRegistryEntry<V>> implements
-		TRLTypeAdapter {
+public final class ResourceLocationTypeAdapter<V> implements TRLTypeAdapter {
 	private final Class<V> registryEntryClass;
-	private final IForgeRegistry<V> registry;
+	private final CompatForgeRegistry<V> registry;
 	private final boolean isArray;
 
 	public ResourceLocationTypeAdapter(Class<V> registryEntryClass, boolean isArray) {
 		this.registryEntryClass = registryEntryClass;
-		registry = GameRegistry.findRegistry(registryEntryClass);
+		registry = CompatForgeRegistry.findRegistry(registryEntryClass);
 		this.isArray = isArray;
 	}
 
@@ -53,10 +51,9 @@ public final class ResourceLocationTypeAdapter<V extends IForgeRegistryEntry<V>>
 				registry.getValue(new ResourceLocation(property.getDefault())) : object;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public String asString(Object value) {
-		return value == null ? "" : ((V) value).getRegistryName().toString();
+		return value == null ? "" : new CompatForgeRegistryEntry(value).getRegistryName().toString();
 	}
 
 	@Override
