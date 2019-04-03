@@ -13,8 +13,8 @@ import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
+import com.therandomlabs.randomlib.CompatForgeRegistryEntry;
 import net.minecraftforge.common.config.Property;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
 public final class TRLTypeAdapters {
 	private static final Map<Class<?>, TRLTypeAdapter> ADAPTERS = new HashMap<>();
@@ -680,7 +680,6 @@ public final class TRLTypeAdapters {
 		});
 	}
 
-	@SuppressWarnings("unchecked")
 	public static TRLTypeAdapter get(Class<?> clazz) {
 		final TRLTypeAdapter adapter = ADAPTERS.get(clazz);
 
@@ -688,14 +687,16 @@ public final class TRLTypeAdapters {
 			return adapter;
 		}
 
-		if(IForgeRegistryEntry.class.isAssignableFrom(clazz)) {
-			register((Class<? extends IForgeRegistryEntry>) clazz);
-		} else if(IForgeRegistryEntry[].class.isAssignableFrom(clazz)) {
-			register((
-					Class<? extends IForgeRegistryEntry>) clazz.getComponentType()
-			);
+		if(CompatForgeRegistryEntry.CLASS.isAssignableFrom(clazz)) {
+			register(clazz);
 		} else {
-			return null;
+			final Class<?> componentType = clazz.getComponentType();
+
+			if(CompatForgeRegistryEntry.CLASS.isAssignableFrom(componentType)) {
+				register(componentType);
+			} else {
+				return null;
+			}
 		}
 
 		return ADAPTERS.get(clazz);
@@ -710,11 +711,11 @@ public final class TRLTypeAdapters {
 		register(clazz2, adapter);
 	}
 
-	public static <V extends IForgeRegistryEntry<V>> void register(Class<V> registryEntryClass) {
-		register(registryEntryClass, new ResourceLocationTypeAdapter<>(registryEntryClass, false));
+	public static void register(Class<?> registryEntryClass) {
+		register(registryEntryClass, new ResourceLocationTypeAdapter(registryEntryClass, false));
 		register(
 				Array.newInstance(registryEntryClass, 0).getClass(),
-				new ResourceLocationTypeAdapter<>(registryEntryClass, true)
+				new ResourceLocationTypeAdapter(registryEntryClass, true)
 		);
 	}
 }

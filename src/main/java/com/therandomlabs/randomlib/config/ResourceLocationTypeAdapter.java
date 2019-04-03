@@ -10,26 +10,25 @@ import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.LoaderState;
 
-public final class ResourceLocationTypeAdapter<V> implements TRLTypeAdapter {
-	private final Class<V> registryEntryClass;
-	private final CompatForgeRegistry<V> registry;
+public final class ResourceLocationTypeAdapter implements TRLTypeAdapter {
+	private final Class<?> registryEntryClass;
+	private final CompatForgeRegistry<?> registry;
 	private final boolean isArray;
 
-	public ResourceLocationTypeAdapter(Class<V> registryEntryClass, boolean isArray) {
+	public ResourceLocationTypeAdapter(Class<?> registryEntryClass, boolean isArray) {
 		this.registryEntryClass = registryEntryClass;
 		registry = CompatForgeRegistry.findRegistry(registryEntryClass);
 		this.isArray = isArray;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Object getValue(Property property) {
 		if(isArray) {
 			final String[] array = property.getStringList();
-			final List<V> values = new ArrayList<>(array.length);
+			final List<Object> values = new ArrayList<>(array.length);
 
 			for(String element : array) {
-				final V object =
+				final Object object =
 						registry.getValue(new ResourceLocation(element.replaceAll("\\s", "")));
 
 				if(object != null) {
@@ -37,7 +36,7 @@ public final class ResourceLocationTypeAdapter<V> implements TRLTypeAdapter {
 				}
 			}
 
-			return values.toArray((V[]) Array.newInstance(registryEntryClass, 0));
+			return values.toArray((Object[]) Array.newInstance(registryEntryClass, 0));
 		}
 
 		final String location = property.getString();
@@ -46,7 +45,7 @@ public final class ResourceLocationTypeAdapter<V> implements TRLTypeAdapter {
 			return null;
 		}
 
-		final V object = registry.getValue(new ResourceLocation(location.replaceAll("\\s", "")));
+		final Object object = registry.getValue(new ResourceLocation(location.replaceAll("\\s", "")));
 		return object == null ?
 				registry.getValue(new ResourceLocation(property.getDefault())) : object;
 	}
