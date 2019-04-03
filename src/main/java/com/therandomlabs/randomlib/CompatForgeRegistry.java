@@ -12,8 +12,8 @@ public class CompatForgeRegistry<K> {
 			TRLUtils.MC_VERSION_NUMBER > 11 ? IForgeRegistry.class :
 					TRLUtils.getClass("net.minecraftforge.fml.common.registry.IForgeRegistry");
 
-	private static final Method FIND_REGISTRY = TRLUtils.MC_VERSION_NUMBER > 11 ? null :
-			TRLUtils.findMethod(GameRegistry.class, "findRegistry", CompatForgeRegistryEntry.CLASS);
+	private static final Method FIND_REGISTRY = TRLUtils.MC_VERSION_NUMBER > 11 ?
+			null : TRLUtils.findMethod(GameRegistry.class, "findRegistry", Class.class);
 
 	private static final Method GET_VALUE = TRLUtils.MC_VERSION_NUMBER > 11 ?
 			null : TRLUtils.findMethod(CLASS, "getValue", ResourceLocation.class);
