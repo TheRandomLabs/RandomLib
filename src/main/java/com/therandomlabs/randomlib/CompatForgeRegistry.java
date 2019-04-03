@@ -39,7 +39,7 @@ public class CompatForgeRegistry<K> {
 		}
 
 		try {
-			return (K) GET_VALUE.invoke(registry);
+			return (K) GET_VALUE.invoke(registry, key);
 		} catch(IllegalAccessException | InvocationTargetException ex) {
 			TRLUtils.crashReport("Failed to get registry entry with key: " + key, ex);
 		}
