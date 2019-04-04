@@ -20,6 +20,7 @@ final class TRLCategory {
 	final List<TRLProperty> properties = new ArrayList<>();
 
 	final Method onReload;
+	final Method onReloadClient;
 
 	TRLCategory(String languageKeyPrefix, Class<?> clazz, String comment, String name) {
 		this.languageKeyPrefix = languageKeyPrefix;
@@ -27,23 +28,16 @@ final class TRLCategory {
 		this.clazz = clazz;
 		this.comment = comment;
 		this.name = TRLUtils.MC_VERSION_NUMBER == 8 ? name.toLowerCase(Locale.ENGLISH) : name;
-
-		onReload = TRLUtils.findMethod(clazz, "onReload");
-
-		if(onReload != null) {
-			final int modifiers = onReload.getModifiers();
-
-			if(!Modifier.isPublic(modifiers) || !Modifier.isStatic(modifiers) ||
-					onReload.getReturnType() != void.class) {
-				throw new IllegalArgumentException("onReload must be public static void");
-			}
-		}
+		onReload = getOnReloadMethod(clazz, "onReload");
+		onReloadClient = getOnReloadMethod(clazz, "onReloadClient");
 	}
 
-	void onReload() {
-		if(onReload != null) {
+	void onReload(boolean client) {
+		final Method method = client ? onReloadClient : onReload;
+
+		if(method != null) {
 			try {
-				onReload.invoke(null);
+				method.invoke(null);
 			} catch(IllegalAccessException | InvocationTargetException ex) {
 				TRLUtils.crashReport("Failed to reload configuration category", ex);
 			}
@@ -79,5 +73,20 @@ final class TRLCategory {
 
 	String getLanguageKeyPrefix() {
 		return languageKey + ".";
+	}
+
+	private static Method getOnReloadMethod(Class<?> clazz, String name) {
+		final Method onReload = TRLUtils.findMethod(clazz, name);
+
+		if(onReload != null) {
+			final int modifiers = onReload.getModifiers();
+
+			if(!Modifier.isPublic(modifiers) || !Modifier.isStatic(modifiers) ||
+					onReload.getReturnType() != void.class) {
+				throw new IllegalArgumentException(name + " must be public static void");
+			}
+		}
+
+		return onReload;
 	}
 }

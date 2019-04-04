@@ -138,7 +138,11 @@ public final class ConfigManager {
 		data.categories.forEach(category -> category.createPropertyOrder(data.config));
 
 		for(TRLCategory category : data.categories) {
-			category.onReload();
+			category.onReload(false);
+
+			if(TRLUtils.IS_CLIENT) {
+				category.onReload(true);
+			}
 
 			for(TRLProperty property : category.properties) {
 				try {
