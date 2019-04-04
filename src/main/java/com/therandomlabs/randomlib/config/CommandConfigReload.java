@@ -8,9 +8,18 @@ import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.fml.relauncher.Side;
 
 public class CommandConfigReload extends CommandBase {
+	public enum ReloadPhase {
+		PRE,
+		POST
+	}
+
+	public interface ConfigReloader {
+		void reload(ReloadPhase phase);
+	}
+
 	private final String name;
 	private final Class<?> configClass;
-	private final Runnable runnable;
+	private final ConfigReloader reloader;
 	private final boolean isClient;
 	private final String successMessage;
 
@@ -23,15 +32,16 @@ public class CommandConfigReload extends CommandBase {
 		this(name, configClass, null, side, successMessage);
 	}
 
-	public CommandConfigReload(String name, Class<?> configClass, Runnable runnable, Side side) {
-		this(name, configClass, runnable, side, null);
+	public CommandConfigReload(String name, Class<?> configClass,
+			ConfigReloader reloader, Side side) {
+		this(name, configClass, reloader, side, null);
 	}
 
-	public CommandConfigReload(String name, Class<?> configClass, Runnable runnable, Side side,
-			String successMessage) {
+	public CommandConfigReload(String name, Class<?> configClass, ConfigReloader reloader,
+			Side side, String successMessage) {
 		this.name = name;
 		this.configClass = configClass;
-		this.runnable = runnable;
+		this.reloader = reloader;
 		isClient = side.isClient();
 		this.successMessage = successMessage;
 	}
@@ -49,10 +59,14 @@ public class CommandConfigReload extends CommandBase {
 	@Override
 	public void execute(MinecraftServer server, ICommandSender sender, String[] args)
 			throws CommandException {
+		if(reloader != null) {
+			reloader.reload(ReloadPhase.PRE);
+		}
+
 		ConfigManager.reloadFromDisk(configClass);
 
-		if(runnable != null) {
-			runnable.run();
+		if(reloader != null) {
+			reloader.reload(ReloadPhase.POST);
 		}
 
 		if(successMessage != null && server != null && server.isDedicatedServer()) {
