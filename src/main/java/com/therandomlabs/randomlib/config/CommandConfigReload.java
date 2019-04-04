@@ -12,20 +12,20 @@ public class CommandConfigReload extends CommandBase {
 	private final Class<?> configClass;
 	private final Runnable runnable;
 	private final boolean isClient;
-	private final boolean alwaysUseTranslationKeys;
+	private final String successMessage;
 
 	public CommandConfigReload(String name, Class<?> configClass, Side side,
-			boolean alwaysUseTranslationKeys) {
-		this(name, configClass, null, side, true);
+			String successMessage) {
+		this(name, configClass, null, side, successMessage);
 	}
 
 	public CommandConfigReload(String name, Class<?> configClass, Runnable runnable, Side side,
-			boolean alwaysUseTranslationKeys) {
+			String successMessage) {
 		this.name = name;
 		this.configClass = configClass;
 		this.runnable = runnable;
 		isClient = side.isClient();
-		this.alwaysUseTranslationKeys = alwaysUseTranslationKeys;
+		this.successMessage = successMessage;
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public class CommandConfigReload extends CommandBase {
 
 	@Override
 	public String getUsage(ICommandSender sender) {
-		return alwaysUseTranslationKeys || isClient ? "commands." + name + ".usage" : "/" + name;
+		return successMessage == null || isClient ? "commands." + name + ".usage" : "/" + name;
 	}
 
 	@Override
@@ -47,8 +47,8 @@ public class CommandConfigReload extends CommandBase {
 			runnable.run();
 		}
 
-		if(!alwaysUseTranslationKeys && server != null && server.isDedicatedServer()) {
-			notifyCommandListener(sender, this, "RandomTweaks configuration reloaded!");
+		if(successMessage != null && server != null && server.isDedicatedServer()) {
+			notifyCommandListener(sender, this, successMessage);
 		} else {
 			sender.sendMessage(new TextComponentTranslation("commands." + name + ".success"));
 		}
