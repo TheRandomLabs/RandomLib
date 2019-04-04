@@ -389,14 +389,18 @@ final class TRLProperty {
 
 			for(Object element : boxedArray) {
 				if(element != null) {
-					filtered.add(validate(element, false));
+					final Object validated = validate(element, false);
+
+					if(validated != null) {
+						filtered.add(validated);
+					}
 				}
 			}
 
 			final Object[] filteredArray = filtered.toArray(Arrays.copyOf(boxedArray, 0));
 			return primitive ? TRLUtils.toPrimitiveArray(filteredArray) : filteredArray;
 		} else if(ArrayUtils.contains(blacklist, adapter.asString(value))) {
-			return defaultValue;
+			return null;
 		}
 
 		if(value instanceof Number) {
@@ -438,7 +442,11 @@ final class TRLProperty {
 
 	Property serialize(Configuration config) throws IllegalAccessException {
 		final Property property = get(config);
-		final Object value = validate(field.get(null), isArray);
+		Object value = validate(field.get(null), isArray);
+
+		if(value == null) {
+			value = defaultValue;
+		}
 
 		if(enumConstants == null) {
 			adapter.setValue(property, value);
@@ -463,7 +471,8 @@ final class TRLProperty {
 			if(nonNull && value == null) {
 				field.set(null, defaultValue);
 			} else {
-				field.set(null, validate(value, isArray));
+				final Object validated = validate(value, isArray);
+				field.set(null, validated == null ? defaultValue : validated);
 			}
 
 			return property;

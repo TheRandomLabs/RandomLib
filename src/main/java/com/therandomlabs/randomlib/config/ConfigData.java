@@ -13,7 +13,7 @@ final class ConfigData {
 	final Path path;
 	final List<TRLCategory> categories;
 	final Configuration config;
-	final Map<String, String> delayedLoad = new HashMap<>();
+	final Map<String, Object> delayedLoad = new HashMap<>();
 
 	ConfigData(Class<?> clazz, String pathString, Path path, List<TRLCategory> categories) {
 		this.clazz = clazz;

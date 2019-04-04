@@ -98,11 +98,17 @@ public final class ConfigManager {
 				if(property.exists(data.config)) {
 					try {
 						if(property.adapter.shouldLoad()) {
-							final String delayedLoad = data.delayedLoad.get(property.languageKey);
+							final Object delayedLoad = data.delayedLoad.get(property.languageKey);
 
 							if(delayedLoad != null) {
 								property.reloadDefault();
-								property.get(data.config).set(delayedLoad);
+
+								if(delayedLoad instanceof String) {
+									property.get(data.config).setValue((String) delayedLoad);
+								} else {
+									property.get(data.config).setValues((String[]) delayedLoad);
+								}
+
 								data.delayedLoad.remove(property.languageKey);
 							}
 
@@ -110,9 +116,16 @@ public final class ConfigManager {
 						} else {
 							//Mainly for ResourceLocations so that if a modded ResourceLocation
 							//is loaded too early, it isn't reset in the config
-							data.delayedLoad.put(
-									property.languageKey, property.get(data.config).getString()
-							);
+
+							final Object value;
+
+							if(property.isArray) {
+								value = property.get(data.config).getStringList();
+							} else {
+								value = property.get(data.config).getString();
+							}
+
+							data.delayedLoad.put(property.languageKey, value);
 						}
 					} catch(Exception ex) {
 						TRLUtils.crashReport(
@@ -149,10 +162,14 @@ public final class ConfigManager {
 					final Property configProperty = property.serialize(data.config);
 					setComment(configProperty, property.commentOnDisk);
 
-					final String delayedLoad = data.delayedLoad.get(property.languageKey);
+					final Object delayedLoad = data.delayedLoad.get(property.languageKey);
 
 					if(delayedLoad != null) {
-						configProperty.set(delayedLoad);
+						if(delayedLoad instanceof String) {
+							configProperty.setValue((String) delayedLoad);
+						} else {
+							configProperty.setValues((String[]) delayedLoad);
+						}
 					}
 				} catch(Exception ex) {
 					TRLUtils.crashReport(
