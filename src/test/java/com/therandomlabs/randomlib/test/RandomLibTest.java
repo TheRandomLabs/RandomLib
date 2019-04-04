@@ -32,7 +32,7 @@ public final class RandomLibTest {
 		ConfigColor.setTranslationKeyPrefix("randomlibtest.config.color.");
 		ConfigManager.register(ConfigTest.class);
 		ClientCommandHandler.instance.registerCommand(new CommandConfigReload(
-				"rltreloadclient", ConfigTest.class, Side.CLIENT, false
+				"rltreloadclient", ConfigTest.class, Side.CLIENT, null
 		));
 	}
 
@@ -44,7 +44,7 @@ public final class RandomLibTest {
 	@Mod.EventHandler
 	public static void serverStarting(FMLServerStartingEvent event) {
 		event.registerServerCommand(new CommandConfigReload(
-				"rltreload", ConfigTest.class, Side.SERVER, false
+				"rltreload", ConfigTest.class, Side.SERVER, "RandomLib Test configuration reloaded!"
 		));
 	}
 }

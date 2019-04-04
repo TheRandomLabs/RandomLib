@@ -14,9 +14,17 @@ public class CommandConfigReload extends CommandBase {
 	private final boolean isClient;
 	private final String successMessage;
 
+	public CommandConfigReload(String name, Class<?> configClass, Side side) {
+		this(name, configClass, side, null);
+	}
+
 	public CommandConfigReload(String name, Class<?> configClass, Side side,
 			String successMessage) {
 		this(name, configClass, null, side, successMessage);
+	}
+
+	public CommandConfigReload(String name, Class<?> configClass, Runnable runnable, Side side) {
+		this(name, configClass, runnable, side, null);
 	}
 
 	public CommandConfigReload(String name, Class<?> configClass, Runnable runnable, Side side,
