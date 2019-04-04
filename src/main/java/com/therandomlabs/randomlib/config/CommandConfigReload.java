@@ -13,6 +13,7 @@ public class CommandConfigReload extends CommandBase {
 		POST
 	}
 
+	@FunctionalInterface
 	public interface ConfigReloader {
 		void reload(ReloadPhase phase);
 	}
