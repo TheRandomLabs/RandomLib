@@ -63,7 +63,8 @@ public @interface Config {
 		String value();
 	}
 
-	String modid();
+	//Mod ID
+	String value();
 
 	String path() default "";
 }

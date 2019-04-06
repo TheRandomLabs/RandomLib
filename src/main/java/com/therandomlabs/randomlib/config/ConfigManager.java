@@ -66,7 +66,7 @@ public final class ConfigManager {
 
 		//We have to assume it's valid since if this is being loaded before Minecraft Forge is
 		//initialized (i.e. in a coremod), Loader.isModLoaded cannot be called
-		final String modid = config.modid();
+		final String modid = config.value();
 
 		//Ensure path is valid by initializing it first
 		final String pathData = config.path();
