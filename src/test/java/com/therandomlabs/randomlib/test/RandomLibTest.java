@@ -14,7 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @Mod(
-		value = RandomLibTest.MOD_ID, name = RandomLibTest.NAME, version = RandomLibTest.VERSION,
+		modid = RandomLibTest.MOD_ID, name = RandomLibTest.NAME, version = RandomLibTest.VERSION,
 		guiFactory = RandomLibTest.GUI_FACTORY
 )
 public final class RandomLibTest {

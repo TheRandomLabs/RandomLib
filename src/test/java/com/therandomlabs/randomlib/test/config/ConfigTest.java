@@ -6,7 +6,7 @@ import com.therandomlabs.randomlib.test.RandomLibTest;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 
-@Config(modid = RandomLibTest.MOD_ID, path = RandomLibTest.MOD_ID + "/main")
+@Config(value = RandomLibTest.MOD_ID, path = RandomLibTest.MOD_ID + "/main")
 public final class ConfigTest {
 	public static final class FlyingPigs {
 		public static final class Lol {
