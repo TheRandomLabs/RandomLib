@@ -2,6 +2,7 @@ package com.therandomlabs.randomlib.config;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentTranslation;
@@ -15,7 +16,7 @@ public class CommandConfigReload extends CommandBase {
 
 	@FunctionalInterface
 	public interface ConfigReloader {
-		void reload(ReloadPhase phase, ICommandSender sender);
+		void reload(ReloadPhase phase, ICommand command, ICommandSender sender);
 	}
 
 	private final String name;
@@ -61,13 +62,13 @@ public class CommandConfigReload extends CommandBase {
 	public void execute(MinecraftServer server, ICommandSender sender, String[] args)
 			throws CommandException {
 		if(reloader != null) {
-			reloader.reload(ReloadPhase.PRE, sender);
+			reloader.reload(ReloadPhase.PRE, this, sender);
 		}
 
 		ConfigManager.reloadFromDisk(configClass);
 
 		if(reloader != null) {
-			reloader.reload(ReloadPhase.POST, sender);
+			reloader.reload(ReloadPhase.POST, this, sender);
 		}
 
 		if(successMessage != null && server != null && server.isDedicatedServer()) {
