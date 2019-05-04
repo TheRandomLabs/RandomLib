@@ -6,16 +6,21 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 public class CompatForgeRegistryEntry {
+	//null on 1.8
 	public static final Class<?> CLASS =
 			TRLUtils.MC_VERSION_NUMBER > 11 ? IForgeRegistryEntry.class :
 					TRLUtils.getClass("net.minecraftforge.fml.common.registry.IForgeRegistryEntry");
 
-	private static final Method GET_REGISTRY_NAME = TRLUtils.MC_VERSION_NUMBER > 11 ?
-			null : TRLUtils.findMethod(CLASS, "getRegistryName");
+	//null on 1.8
+	private static final Method GET_REGISTRY_NAME =
+			TRLUtils.MC_VERSION_NUMBER > 11 || CLASS == null ? null :
+					TRLUtils.findMethod(CLASS, "getRegistryName");
 
 	private final Object entry;
 
 	public CompatForgeRegistryEntry(Object entry) {
+		checkSupported();
+
 		if(!CLASS.isAssignableFrom(entry.getClass())) {
 			throw new IllegalArgumentException("Not an IForgeRegistryEntry: " + entry);
 		}
@@ -28,6 +33,8 @@ public class CompatForgeRegistryEntry {
 	}
 
 	public ResourceLocation getRegistryName() {
+		checkSupported();
+
 		if(TRLUtils.MC_VERSION_NUMBER > 11) {
 			return ((IForgeRegistryEntry) entry).getRegistryName();
 		}
@@ -39,5 +46,11 @@ public class CompatForgeRegistryEntry {
 		}
 
 		return null;
+	}
+
+	private static void checkSupported() {
+		if(CLASS == null) {
+			throw new UnsupportedOperationException("Not supported on Minecraft 1.8");
+		}
 	}
 }

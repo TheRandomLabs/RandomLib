@@ -683,7 +683,7 @@ public final class TRLTypeAdapters {
 	public static TRLTypeAdapter get(Class<?> clazz) {
 		final TRLTypeAdapter adapter = ADAPTERS.get(clazz);
 
-		if(adapter != null) {
+		if(adapter != null || CompatForgeRegistryEntry.CLASS == null) {
 			return adapter;
 		}
 

@@ -87,6 +87,12 @@ final class TRLProperty {
 			adapter = TRLTypeAdapters.get(clazz);
 		}
 
+		if(adapter == null) {
+			throw new UnsupportedOperationException(
+					"Invalid configuration property type: " + clazz.getName()
+			);
+		}
+
 		if(enumClass == null) {
 			enumConstants = null;
 			validValues = null;
@@ -108,7 +114,8 @@ final class TRLProperty {
 
 		type = adapter.getType();
 		isArray = adapter.isArray();
-		isResourceLocation = CompatForgeRegistryEntry.CLASS.isAssignableFrom(clazz);
+		isResourceLocation = CompatForgeRegistryEntry.CLASS != null &&
+				CompatForgeRegistryEntry.CLASS.isAssignableFrom(clazz);
 
 		Object defaultValue = null;
 
