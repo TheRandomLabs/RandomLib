@@ -2,6 +2,7 @@ package com.therandomlabs.randomlib;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.launchwrapper.Launch;
@@ -16,6 +17,8 @@ public final class TRLUtils {
 	public static final boolean IS_CLIENT = FMLLaunchHandler.side().isClient();
 	public static final String MC_VERSION = (String) FMLInjectionData.data()[4];
 	public static final int MC_VERSION_NUMBER = Integer.parseInt(MC_VERSION.split("\\.")[1]);
+
+	private static Field modifiers;
 
 	private TRLUtils() {}
 
@@ -132,6 +135,21 @@ public final class TRLUtils {
 		}
 
 		return null;
+	}
+
+	public static Field removeFinalModifier(Field field) {
+		try {
+			if(modifiers == null) {
+				modifiers = Field.class.getDeclaredField("modifiers");
+				modifiers.setAccessible(true);
+			}
+
+			modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+		} catch(Exception ex) {
+			crashReport("Failed to make " + field.getName() + " non-final", ex);
+		}
+
+		return field;
 	}
 
 	public static Class<?> getClass(String name) {
