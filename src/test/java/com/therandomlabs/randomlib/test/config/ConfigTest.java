@@ -14,9 +14,11 @@ public final class ConfigTest {
 			public static boolean test = true;
 		}
 
+		@Config.MCVersion("1.12.2")
 		@Config.Category("lol")
 		public static final Lol lol = null;
 
+		@Config.MCVersion("[1.10,1.11]")
 		@Config.RequiresMCRestart
 		@Config.Property("Whether to enable flying pigs.")
 		public static boolean flyingPigs = true;

@@ -7,6 +7,8 @@ import java.util.Arrays;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.util.ReportedException;
+import net.minecraftforge.fml.common.versioning.ArtifactVersion;
+import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion;
 import net.minecraftforge.fml.relauncher.FMLInjectionData;
 import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import org.apache.commons.lang3.ArrayUtils;
@@ -17,6 +19,8 @@ public final class TRLUtils {
 	public static final boolean IS_CLIENT = FMLLaunchHandler.side().isClient();
 	public static final String MC_VERSION = (String) FMLInjectionData.data()[4];
 	public static final int MC_VERSION_NUMBER = Integer.parseInt(MC_VERSION.split("\\.")[1]);
+	public static final ArtifactVersion MC_ARTIFACT_VERSION =
+			new DefaultArtifactVersion("minecraft", MC_VERSION);
 
 	private static Field modifiers;
 

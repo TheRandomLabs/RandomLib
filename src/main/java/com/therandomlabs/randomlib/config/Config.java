@@ -63,6 +63,13 @@ public @interface Config {
 		String value();
 	}
 
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	@interface MCVersion {
+		//Version range
+		String value();
+	}
+
 	//Mod ID
 	String value();
 

@@ -18,6 +18,8 @@ import net.minecraftforge.fml.client.config.IConfigElement;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.versioning.VersionParser;
+import net.minecraftforge.fml.common.versioning.VersionRange;
 import org.apache.commons.lang3.StringUtils;
 
 public final class ConfigManager {
@@ -259,6 +261,10 @@ public final class ConfigManager {
 				throw new IllegalArgumentException(name + " is not public static final");
 			}
 
+			if(!testVersionRange(field)) {
+				continue;
+			}
+
 			final Class<?> categoryClass = field.getType();
 			final String categoryName = parentCategory + name;
 
@@ -294,6 +300,10 @@ public final class ConfigManager {
 				throw new IllegalArgumentException(name + " is not public static non-final");
 			}
 
+			if(!testVersionRange(field)) {
+				continue;
+			}
+
 			final Config.Previous previousData = field.getAnnotation(Config.Previous.class);
 			final String previous = previousData == null ? null : previousData.value();
 
@@ -303,5 +313,22 @@ public final class ConfigManager {
 				throw new ConfigException(name, ex);
 			}
 		}
+	}
+
+	private static boolean testVersionRange(Field field) {
+		final Config.MCVersion mcVersion = field.getAnnotation(Config.MCVersion.class);
+
+		if(mcVersion == null) {
+			return true;
+		}
+
+		final String versionRange = mcVersion.value().trim();
+
+		if(versionRange.isEmpty()) {
+			throw new IllegalArgumentException("Version range must not be empty");
+		}
+
+		final VersionRange range = VersionParser.parseRange(versionRange);
+		return range.containsVersion(TRLUtils.MC_ARTIFACT_VERSION);
 	}
 }

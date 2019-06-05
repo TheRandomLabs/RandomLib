@@ -15,7 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 @Mod(
 		modid = RandomLibTest.MOD_ID, name = RandomLibTest.NAME, version = RandomLibTest.VERSION,
-		guiFactory = RandomLibTest.GUI_FACTORY
+		guiFactory = RandomLibTest.GUI_FACTORY, acceptedMinecraftVersions = "[1.8,1.13)"
 )
 public final class RandomLibTest {
 	public static final String MOD_ID = "randomlibtest";
