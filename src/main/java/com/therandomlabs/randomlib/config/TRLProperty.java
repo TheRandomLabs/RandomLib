@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import com.therandomlabs.randomlib.CompatForgeRegistry;
 import com.therandomlabs.randomlib.CompatForgeRegistryEntry;
 import com.therandomlabs.randomlib.TRLUtils;
+import com.therandomlabs.randomlib.config.adapter.TRLTypeAdapter;
+import com.therandomlabs.randomlib.config.adapter.TRLTypeAdapters;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;

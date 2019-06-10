@@ -1,6 +1,7 @@
-package com.therandomlabs.randomlib.config;
+package com.therandomlabs.randomlib.config.adapter;
 
 import java.lang.reflect.Array;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -678,6 +679,9 @@ public final class TRLTypeAdapters {
 				return true;
 			}
 		});
+
+		register(Path.class, new PathTypeAdapter(false));
+		register(Path[].class, new PathTypeAdapter(true));
 	}
 
 	public static TRLTypeAdapter get(Class<?> clazz) {

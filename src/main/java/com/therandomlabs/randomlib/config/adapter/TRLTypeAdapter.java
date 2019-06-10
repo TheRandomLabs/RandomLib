@@ -1,4 +1,4 @@
-package com.therandomlabs.randomlib.config;
+package com.therandomlabs.randomlib.config.adapter;
 
 import java.util.Arrays;
 import net.minecraftforge.common.config.Property;

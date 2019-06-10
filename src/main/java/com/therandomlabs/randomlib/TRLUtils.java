@@ -3,6 +3,9 @@ package com.therandomlabs.randomlib;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.launchwrapper.Launch;
@@ -107,6 +110,18 @@ public final class TRLUtils {
 		}
 
 		return null;
+	}
+
+	public static Path getPath(String path) {
+		try {
+			return Paths.get(path).normalize();
+		} catch(InvalidPathException ignored) {}
+
+		return null;
+	}
+
+	public static String toStringWithUnixPathSeparators(Path path) {
+		return path.toString().replace('\\', '/');
 	}
 
 	public static Field findField(Class<?> clazz, String... names) {

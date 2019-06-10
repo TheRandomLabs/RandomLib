@@ -1,5 +1,7 @@
 package com.therandomlabs.randomlib.test.config;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import com.therandomlabs.randomlib.config.Config;
 import com.therandomlabs.randomlib.config.ConfigColor;
 import com.therandomlabs.randomlib.test.RandomLibTest;
@@ -17,6 +19,11 @@ public final class ConfigTest {
 		@Config.MCVersion("1.12.2")
 		@Config.Category("lol")
 		public static final Lol lol = null;
+
+		//Blacklist the current directory
+		@Config.Blacklist("")
+		@Config.Property("The flying path.")
+		public static Path flyingPath = Paths.get("over\\there");
 
 		@Config.MCVersion("[1.10,1.11]")
 		@Config.RequiresMCRestart

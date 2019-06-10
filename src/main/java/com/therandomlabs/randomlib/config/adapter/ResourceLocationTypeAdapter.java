@@ -1,4 +1,4 @@
-package com.therandomlabs.randomlib.config;
+package com.therandomlabs.randomlib.config.adapter;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -23,41 +23,38 @@ public final class ResourceLocationTypeAdapter implements TRLTypeAdapter {
 
 	@Override
 	public Object getValue(Property property) {
-		if(isArray) {
-			final String[] array = property.getStringList();
-			final List<Object> values = new ArrayList<>(array.length);
+		if(!isArray) {
+			final String location = property.getString();
 
-			for(String element : array) {
-				final Object object =
-						registry.getValue(new ResourceLocation(element.replaceAll("\\s", "")));
-
-				if(object != null) {
-					values.add(object);
-				}
+			if(location.isEmpty()) {
+				return null;
 			}
 
-			return values.toArray((Object[]) Array.newInstance(registryEntryClass, 0));
+			final Object object =
+					registry.getValue(new ResourceLocation(location.replaceAll("\\s", "")));
+			return object == null ?
+					registry.getValue(new ResourceLocation(property.getDefault())) : object;
 		}
 
-		final String location = property.getString();
+		final String[] array = property.getStringList();
+		final List<Object> values = new ArrayList<>(array.length);
 
-		if(location.isEmpty()) {
-			return null;
+		for(String element : array) {
+			final Object object =
+					registry.getValue(new ResourceLocation(element.replaceAll("\\s", "")));
+
+			if(object != null) {
+				values.add(object);
+			}
 		}
 
-		final Object object = registry.getValue(new ResourceLocation(location.replaceAll("\\s", "")));
-		return object == null ?
-				registry.getValue(new ResourceLocation(property.getDefault())) : object;
+		return values.toArray((Object[]) Array.newInstance(registryEntryClass, 0));
 	}
 
 	@Override
 	public String asString(Object value) {
-		return value == null ? "" : new CompatForgeRegistryEntry(value).getRegistryName().toString();
-	}
-
-	@Override
-	public Property.Type getType() {
-		return Property.Type.STRING;
+		return value == null ?
+				"" : new CompatForgeRegistryEntry(value).getRegistryName().toString();
 	}
 
 	@Override
