@@ -319,20 +319,24 @@ public final class ConfigManager {
 	private static boolean testVersionRange(Field field) {
 		final Config.MCVersion mcVersion = field.getAnnotation(Config.MCVersion.class);
 
-		if(mcVersion == null) {
-			return true;
+		if(mcVersion != null) {
+			final String versionRange = mcVersion.value().trim();
+
+			if(versionRange.isEmpty()) {
+				throw new IllegalArgumentException("Version range must not be empty");
+			}
+
+			final VersionRange range = VersionParser.parseRange(versionRange);
+
+			if(!range.containsVersion(TRLUtils.MC_ARTIFACT_VERSION)) {
+				return false;
+			}
 		}
 
 		final Config.MinForgeBuild minForgeBuild = field.getAnnotation(Config.MinForgeBuild.class);
 
 		if(minForgeBuild == null) {
 			return true;
-		}
-
-		final String versionRange = mcVersion.value().trim();
-
-		if(versionRange.isEmpty()) {
-			throw new IllegalArgumentException("Version range must not be empty");
 		}
 
 		final int forgeBuild = minForgeBuild.value();
@@ -342,8 +346,6 @@ public final class ConfigManager {
 			throw new IllegalArgumentException("Invalid Forge build: " + forgeBuild);
 		}
 
-		final VersionRange range = VersionParser.parseRange(versionRange);
-		return range.containsVersion(TRLUtils.MC_ARTIFACT_VERSION) &&
-				ForgeVersion.buildVersion >= forgeBuild;
+		return ForgeVersion.buildVersion >= forgeBuild;
 	}
 }
