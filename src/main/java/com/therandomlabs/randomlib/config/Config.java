@@ -70,6 +70,13 @@ public @interface Config {
 		String value();
 	}
 
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	@interface MinForgeBuild {
+		//Minimum Forge build
+		int value();
+	}
+
 	//Mod ID
 	String value();
 

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import com.therandomlabs.randomlib.TRLUtils;
+import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
@@ -322,13 +323,27 @@ public final class ConfigManager {
 			return true;
 		}
 
+		final Config.MinForgeBuild minForgeBuild = field.getAnnotation(Config.MinForgeBuild.class);
+
+		if(minForgeBuild == null) {
+			return true;
+		}
+
 		final String versionRange = mcVersion.value().trim();
 
 		if(versionRange.isEmpty()) {
 			throw new IllegalArgumentException("Version range must not be empty");
 		}
 
+		final int forgeBuild = minForgeBuild.value();
+
+		//Oldest Forge 1.8 build
+		if(forgeBuild < 1237) {
+			throw new IllegalArgumentException("Invalid Forge build: " + forgeBuild);
+		}
+
 		final VersionRange range = VersionParser.parseRange(versionRange);
-		return range.containsVersion(TRLUtils.MC_ARTIFACT_VERSION);
+		return range.containsVersion(TRLUtils.MC_ARTIFACT_VERSION) &&
+				ForgeVersion.buildVersion >= forgeBuild;
 	}
 }
