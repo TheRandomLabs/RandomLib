@@ -21,7 +21,7 @@ archivesBaseName = "randomlib"
 sourceCompatibility = targetCompatibility = "1.8"
 
 minecraft {
-	version = "1.12.2-14.23.5.2836"
+	version = "1.12.2-14.23.5.2838"
 	runDir = "run"
 	mappings = "stable_39"
 }
