@@ -487,9 +487,13 @@ final class TRLProperty {
 			return property;
 		}
 
+		//Ignore underscores when matching enums
+		//Hopefully this will never cause issues
 		if(!isArray) {
+			final String value = StringUtils.remove(property.getString(), '_');
+
 			for(Enum element : enumConstants) {
-				if(element.name().equalsIgnoreCase(property.getString())) {
+				if(StringUtils.remove(element.name(), '_').equalsIgnoreCase(value)) {
 					field.set(null, element);
 					return property;
 				}
@@ -503,8 +507,10 @@ final class TRLProperty {
 		final List<Object> enumValues = new ArrayList<>(values.length);
 
 		for(String value : values) {
+			value = StringUtils.remove(value, '_');
+
 			for(Enum element : enumConstants) {
-				if(element.name().equalsIgnoreCase(value)) {
+				if(StringUtils.remove(element.name(), '_').equalsIgnoreCase(value)) {
 					enumValues.add(element);
 					break;
 				}
