@@ -346,6 +346,6 @@ public final class ConfigManager {
 			throw new IllegalArgumentException("Invalid Forge build: " + forgeBuild);
 		}
 
-		return ForgeVersion.buildVersion >= forgeBuild;
+		return ForgeVersion.getBuildVersion() >= forgeBuild;
 	}
 }
