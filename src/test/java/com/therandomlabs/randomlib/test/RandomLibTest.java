@@ -9,7 +9,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,8 +29,8 @@ public final class RandomLibTest {
 	public static void preInit(FMLPreInitializationEvent event) {
 		ConfigColor.setTranslationKeyPrefix("randomlibtest.config.color.");
 		ConfigManager.register(ConfigTest.class);
-		ClientCommandHandler.instance.registerCommand(new CommandConfigReload(
-				"rltreloadclient", ConfigTest.class, Side.CLIENT, null
+		ClientCommandHandler.instance.registerCommand(CommandConfigReload.client(
+				"rltreloadclient", ConfigTest.class
 		));
 	}
 
@@ -42,8 +41,9 @@ public final class RandomLibTest {
 
 	@Mod.EventHandler
 	public static void serverStarting(FMLServerStartingEvent event) {
-		event.registerServerCommand(new CommandConfigReload(
-				"rltreload", ConfigTest.class, Side.SERVER, "RandomLib Test configuration reloaded!"
+		event.registerServerCommand(CommandConfigReload.server(
+				"rltreload", "rltreloadclient", ConfigTest.class,
+				"RandomLib Test configuration reloaded!"
 		));
 	}
 }

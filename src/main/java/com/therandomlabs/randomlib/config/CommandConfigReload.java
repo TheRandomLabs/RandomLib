@@ -8,7 +8,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.fml.relauncher.Side;
 
-public class CommandConfigReload extends CommandBase {
+public final class CommandConfigReload extends CommandBase {
 	public enum ReloadPhase {
 		PRE,
 		POST
@@ -20,28 +20,18 @@ public class CommandConfigReload extends CommandBase {
 	}
 
 	private final String name;
+	private final String clientName;
 	private final Class<?> configClass;
 	private final ConfigReloader reloader;
 	private final boolean isClient;
 	private final String successMessage;
 
-	public CommandConfigReload(String name, Class<?> configClass, Side side) {
-		this(name, configClass, side, null);
-	}
-
-	public CommandConfigReload(String name, Class<?> configClass, Side side,
-			String successMessage) {
-		this(name, configClass, null, side, successMessage);
-	}
-
-	public CommandConfigReload(String name, Class<?> configClass,
-			ConfigReloader reloader, Side side) {
-		this(name, configClass, reloader, side, null);
-	}
-
-	public CommandConfigReload(String name, Class<?> configClass, ConfigReloader reloader,
-			Side side, String successMessage) {
+	private CommandConfigReload(
+			String name, String clientName, Class<?> configClass, ConfigReloader reloader,
+			Side side, String successMessage
+	) {
 		this.name = name;
+		this.clientName = clientName;
 		this.configClass = configClass;
 		this.reloader = reloader;
 		isClient = side.isClient();
@@ -55,6 +45,8 @@ public class CommandConfigReload extends CommandBase {
 
 	@Override
 	public String getUsage(ICommandSender sender) {
+		//If successMessage is null it is assumed that the mod is supposed to be installed
+		//on both the client and server, implying that a translation key can be used
 		return successMessage == null || isClient ? "commands." + name + ".usage" : "/" + name;
 	}
 
@@ -71,15 +63,47 @@ public class CommandConfigReload extends CommandBase {
 			reloader.reload(ReloadPhase.POST, this, sender);
 		}
 
-		if(successMessage != null && server != null && server.isDedicatedServer()) {
+		final boolean serverSided = server != null && server.isDedicatedServer();
+
+		if(successMessage != null && serverSided) {
 			notifyCommandListener(sender, this, successMessage);
 		} else {
-			sender.sendMessage(new TextComponentTranslation("commands." + name + ".success"));
+			final String actualName = serverSided ? name : clientName;
+			sender.sendMessage(new TextComponentTranslation("commands." + actualName + ".success"));
 		}
 	}
 
 	@Override
 	public int getRequiredPermissionLevel() {
 		return isClient ? 0 : 4;
+	}
+
+	public static CommandConfigReload client(String name, Class<?> configClass) {
+		return client(name, configClass, null);
+	}
+
+	public static CommandConfigReload client(
+			String name, Class<?> configClass, ConfigReloader reloader
+	) {
+		return new CommandConfigReload(name, name, configClass, reloader, Side.CLIENT, null);
+	}
+
+	public static CommandConfigReload server(String name, String clientName, Class<?> configClass) {
+		return server(name, clientName, configClass, null, null);
+	}
+
+	public static CommandConfigReload server(
+			String name, String clientName, Class<?> configClass, String successMessage
+	) {
+		return server(name, clientName, configClass, successMessage, null);
+	}
+
+	public static CommandConfigReload server(
+			String name, String clientName, Class<?> configClass, String successMessage,
+			ConfigReloader reloader
+	) {
+		return new CommandConfigReload(
+				name, clientName, configClass, reloader, Side.SERVER, successMessage
+		);
 	}
 }

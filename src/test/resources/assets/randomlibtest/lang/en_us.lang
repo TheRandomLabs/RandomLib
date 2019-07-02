@@ -1,3 +1,5 @@
+commands.rltreloadclient.success=RandomLib Test client-sided configuration reloaded!
+
 randomlibtest.config.flyingPigs=Flying Pigs
 randomlibtest.config.flyingPigs.flyingPigs=Flying pigs
 randomlibtest.config.flyingPigs.flyingPigRange=Flying pig range

@@ -239,8 +239,10 @@ public final class ConfigManager {
 		}
 	}
 
-	private static void loadCategories(String languageKeyPrefix, String parentCategory,
-			Class<?> clazz, List<TRLCategory> categories) {
+	private static void loadCategories(
+			String languageKeyPrefix, String parentCategory, Class<?> clazz,
+			List<TRLCategory> categories
+	) {
 		for(Field field : clazz.getDeclaredFields()) {
 			final Config.Category categoryData = field.getAnnotation(Config.Category.class);
 
