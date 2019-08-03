@@ -1,17 +1,17 @@
 package com.therandomlabs.randomlib.config;
 
-import net.minecraft.item.EnumDyeColor;
+import net.minecraft.item.DyeColor;
 
 public enum ConfigColor {
 	WHITE("white"),
 	ORANGE("orange"),
 	MAGENTA("magenta"),
-	LIGHT_BLUE("lightBlue"),
+	LIGHT_BLUE("light_blue"),
 	YELLOW("yellow"),
 	LIME("lime"),
 	PINK("pink"),
 	GRAY("gray"),
-	SILVER("silver"),
+	LIGHT_GRAY("light_gray"),
 	CYAN("cyan"),
 	PURPLE("purple"),
 	BLUE("blue"),
@@ -23,11 +23,11 @@ public enum ConfigColor {
 	private static String translationKeyPrefix = "";
 
 	private final String translationKey;
-	private final EnumDyeColor color;
+	private final DyeColor color;
 
 	ConfigColor(String translationKey) {
 		this.translationKey = translationKey;
-		color = EnumDyeColor.valueOf(name());
+		color = DyeColor.valueOf(name());
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public enum ConfigColor {
 		return translationKeyPrefix + translationKey;
 	}
 
-	public EnumDyeColor get() {
+	public DyeColor get() {
 		return color;
 	}
 

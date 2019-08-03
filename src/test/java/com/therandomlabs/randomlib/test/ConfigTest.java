@@ -1,12 +1,11 @@
-package com.therandomlabs.randomlib.test.config;
+package com.therandomlabs.randomlib.test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import com.therandomlabs.randomlib.config.Config;
 import com.therandomlabs.randomlib.config.ConfigColor;
-import com.therandomlabs.randomlib.test.RandomLibTest;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 
 @Config(value = RandomLibTest.MOD_ID, path = RandomLibTest.MOD_ID + "/main")
 public final class ConfigTest {
@@ -17,7 +16,7 @@ public final class ConfigTest {
 		}
 
 		@Config.MCVersion("1.12.2")
-		@Config.Category("lol")
+		@Config.Category()
 		public static final Lol lol = null;
 
 		//Blacklist the current directory
@@ -71,6 +70,6 @@ public final class ConfigTest {
 		}
 	}
 
-	@Config.Category("Configuration properties related to flying pigs.")
+	@Config.Category()
 	public static final FlyingPigs flyingPigs = null;
 }

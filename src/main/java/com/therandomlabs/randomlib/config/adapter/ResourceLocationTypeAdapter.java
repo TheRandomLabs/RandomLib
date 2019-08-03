@@ -2,29 +2,32 @@ package com.therandomlabs.randomlib.config.adapter;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import com.therandomlabs.randomlib.CompatForgeRegistry;
-import com.therandomlabs.randomlib.CompatForgeRegistryEntry;
+import java.util.stream.Collectors;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.config.Property;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.LoaderState;
+import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraftforge.registries.IForgeRegistryEntry;
+import net.minecraftforge.registries.RegistryManager;
 
-public final class ResourceLocationTypeAdapter implements TRLTypeAdapter {
+public final class ResourceLocationTypeAdapter implements TypeAdapter {
 	private final Class<?> registryEntryClass;
-	private final CompatForgeRegistry<?> registry;
+	private final IForgeRegistry<?> registry;
 	private final boolean isArray;
 
-	public ResourceLocationTypeAdapter(Class<?> registryEntryClass, boolean isArray) {
+	public ResourceLocationTypeAdapter(
+			Class<IForgeRegistryEntry<?>> registryEntryClass, boolean isArray
+	) {
 		this.registryEntryClass = registryEntryClass;
-		registry = CompatForgeRegistry.findRegistry(registryEntryClass);
+		registry = RegistryManager.ACTIVE.getRegistry(registryEntryClass);
 		this.isArray = isArray;
 	}
 
 	@Override
-	public Object getValue(Property property) {
+	public Object getValue(CommentedFileConfig config, String name, Object defaultValue) {
 		if(!isArray) {
-			final String location = property.getString();
+			final String location = config.get(name);
 
 			if(location.isEmpty()) {
 				return null;
@@ -32,14 +35,13 @@ public final class ResourceLocationTypeAdapter implements TRLTypeAdapter {
 
 			final Object object =
 					registry.getValue(new ResourceLocation(location.replaceAll("\\s", "")));
-			return object == null ?
-					registry.getValue(new ResourceLocation(property.getDefault())) : object;
+			return object == null ? defaultValue : object;
 		}
 
-		final String[] array = property.getStringList();
-		final List<Object> values = new ArrayList<>(array.length);
+		final List<String> list = config.get(name);
+		final List<Object> values = new ArrayList<>(list.size());
 
-		for(String element : array) {
+		for(String element : list) {
 			final Object object =
 					registry.getValue(new ResourceLocation(element.replaceAll("\\s", "")));
 
@@ -52,9 +54,22 @@ public final class ResourceLocationTypeAdapter implements TRLTypeAdapter {
 	}
 
 	@Override
+	public void setValue(CommentedFileConfig config, String name, Object value) {
+		if(isArray) {
+			config.set(
+					name,
+					Arrays.stream((Object[]) value).
+							map(this::asString).
+							collect(Collectors.toList())
+			);
+		} else {
+			config.set(name, asString(value));
+		}
+	}
+
+	@Override
 	public String asString(Object value) {
-		return value == null ?
-				"" : new CompatForgeRegistryEntry(value).getRegistryName().toString();
+		return value == null ? "" : ((IForgeRegistryEntry) value).getRegistryName().toString();
 	}
 
 	@Override
@@ -64,6 +79,7 @@ public final class ResourceLocationTypeAdapter implements TRLTypeAdapter {
 
 	@Override
 	public boolean shouldLoad() {
-		return Loader.instance().hasReachedState(LoaderState.INITIALIZATION);
+		//TODO has reached initialization
+		return true;
 	}
 }

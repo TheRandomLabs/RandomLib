@@ -1,0 +1,14 @@
+modLoader = "javafml"
+loaderVersion = "[14,)"
+issueTrackerURL = "https://github.com/TheRandomLabs/RandomLib/issues"
+logoFile = "logo.png"
+authors = "TheRandomLabs"
+
+[[mods]]
+
+modId = "randomlibtest"
+version = "${file.jarVersion}"
+displayName = "RandomLib Test"
+description = '''
+RandomLib Test, a test mod for RandomLib.
+'''

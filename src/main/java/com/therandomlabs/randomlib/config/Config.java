@@ -10,10 +10,7 @@ import java.lang.annotation.Target;
 public @interface Config {
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
-	@interface Category {
-		//Comment
-		String[] value();
-	}
+	@interface Category {}
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)

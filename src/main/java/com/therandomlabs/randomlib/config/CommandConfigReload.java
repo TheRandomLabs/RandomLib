@@ -1,14 +1,15 @@
 package com.therandomlabs.randomlib.config;
 
-import net.minecraft.command.CommandBase;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommand;
-import net.minecraft.command.ICommandSender;
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import net.minecraft.command.CommandSource;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
 
-public final class CommandConfigReload extends CommandBase {
+public final class CommandConfigReload {
 	public enum ReloadPhase {
 		PRE,
 		POST
@@ -16,94 +17,86 @@ public final class CommandConfigReload extends CommandBase {
 
 	@FunctionalInterface
 	public interface ConfigReloader {
-		void reload(ReloadPhase phase, ICommand command, ICommandSender sender);
+		void reload(ReloadPhase phase, CommandSource source);
 	}
 
-	private final String name;
-	private final String clientName;
-	private final Class<?> configClass;
-	private final ConfigReloader reloader;
-	private final boolean isClient;
-	private final String successMessage;
+	private CommandConfigReload() {}
 
-	private CommandConfigReload(
-			String name, String clientName, Class<?> configClass, ConfigReloader reloader,
-			Side side, String successMessage
+	private static void register(
+			CommandDispatcher<CommandSource> dispatcher, String name, String clientName,
+			Class<?> configClass, ConfigReloader reloader, Dist dist, String successMessage
 	) {
-		this.name = name;
-		this.clientName = clientName;
-		this.configClass = configClass;
-		this.reloader = reloader;
-		isClient = side.isClient();
-		this.successMessage = successMessage;
+		dispatcher.register(LiteralArgumentBuilder.<CommandSource>literal(name).
+				requires(source -> source.hasPermissionLevel(dist == Dist.CLIENT ? 0 : 4)).
+				executes(context -> execute(
+						context.getSource(), name, clientName, configClass, reloader, dist,
+						successMessage
+				)));
 	}
 
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
-	public String getUsage(ICommandSender sender) {
-		//If successMessage is null it is assumed that the mod is supposed to be installed
-		//on both the client and server, implying that a translation key can be used
-		return successMessage == null || isClient ? "commands." + name + ".usage" : "/" + name;
-	}
-
-	@Override
-	public void execute(MinecraftServer server, ICommandSender sender, String[] args)
-			throws CommandException {
+	private static int execute(
+			CommandSource source, String name, String clientName, Class<?> configClass,
+			ConfigReloader reloader, Dist dist, String successMessage
+	) {
 		if(reloader != null) {
-			reloader.reload(ReloadPhase.PRE, this, sender);
+			reloader.reload(ReloadPhase.PRE, source);
 		}
 
 		ConfigManager.reloadFromDisk(configClass);
 
 		if(reloader != null) {
-			reloader.reload(ReloadPhase.POST, this, sender);
+			reloader.reload(ReloadPhase.POST, source);
 		}
 
+		final MinecraftServer server = source.getServer();
 		final boolean serverSided = server != null && server.isDedicatedServer();
 
 		if(successMessage != null && serverSided) {
-			notifyCommandListener(sender, this, successMessage);
+			source.sendFeedback(new StringTextComponent(successMessage), true);
 		} else {
 			final String actualName = serverSided ? name : clientName;
-			sender.sendMessage(new TextComponentTranslation("commands." + actualName + ".success"));
+			source.sendFeedback(
+					new TranslationTextComponent("commands." + actualName + ".success"), true
+			);
 		}
+
+		return Command.SINGLE_SUCCESS;
 	}
 
-	@Override
-	public int getRequiredPermissionLevel() {
-		return isClient ? 0 : 4;
-	}
-
-	public static CommandConfigReload client(String name, Class<?> configClass) {
-		return client(name, configClass, null);
-	}
-
-	public static CommandConfigReload client(
-			String name, Class<?> configClass, ConfigReloader reloader
+	public static void client(
+			CommandDispatcher<CommandSource> dispatcher, String name, Class<?> configClass
 	) {
-		return new CommandConfigReload(name, name, configClass, reloader, Side.CLIENT, null);
+		client(dispatcher, name, configClass, null);
 	}
 
-	public static CommandConfigReload server(String name, String clientName, Class<?> configClass) {
-		return server(name, clientName, configClass, null, null);
-	}
-
-	public static CommandConfigReload server(
-			String name, String clientName, Class<?> configClass, String successMessage
-	) {
-		return server(name, clientName, configClass, successMessage, null);
-	}
-
-	public static CommandConfigReload server(
-			String name, String clientName, Class<?> configClass, String successMessage,
+	public static void client(
+			CommandDispatcher<CommandSource> dispatcher, String name, Class<?> configClass,
 			ConfigReloader reloader
 	) {
-		return new CommandConfigReload(
-				name, clientName, configClass, reloader, Side.SERVER, successMessage
+		register(dispatcher, name, name, configClass, reloader, Dist.CLIENT, null);
+	}
+
+	public static void server(
+			CommandDispatcher<CommandSource> dispatcher, String name, String clientName,
+			Class<?> configClass
+	) {
+		server(dispatcher, name, clientName, configClass, null, null);
+	}
+
+	public static void server(
+			CommandDispatcher<CommandSource> dispatcher, String name, String clientName,
+			Class<?> configClass, String successMessage
+	) {
+		server(dispatcher, name, clientName, configClass, successMessage, null);
+	}
+
+	public static void server(
+			CommandDispatcher<CommandSource> dispatcher, String name, String clientName,
+			Class<?> configClass, String successMessage, ConfigReloader reloader
+	) {
+		register(
+				dispatcher, name, clientName, configClass, reloader, Dist.DEDICATED_SERVER,
+				successMessage
 		);
 	}
 }

@@ -1,27 +1,23 @@
 package com.therandomlabs.randomlib.config;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.therandomlabs.randomlib.TRLUtils;
-import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.config.ConfigElement;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
-import net.minecraftforge.fml.client.config.IConfigElement;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.versioning.VersionParser;
-import net.minecraftforge.fml.common.versioning.VersionRange;
+import net.minecraftforge.forgespi.language.MavenVersionAdapter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.VersionRange;
 
 public final class ConfigManager {
 	private static final ConfigManager INSTANCE = new ConfigManager();
@@ -29,35 +25,17 @@ public final class ConfigManager {
 	private static final Map<Class<?>, ConfigData> CONFIGS = new HashMap<>();
 	private static final Map<String, List<ConfigData>> MODID_TO_CONFIGS = new HashMap<>();
 
-	private static final Field MODID = TRLUtils.MC_VERSION_NUMBER == 8 ?
-			TRLUtils.findField(ConfigChangedEvent.class, "modID") : null;
-	private static final Field COMMENT = TRLUtils.MC_VERSION_NUMBER == 8 ?
-			TRLUtils.findField(Property.class, "comment") : null;
-
 	private ConfigManager() {}
 
 	@SubscribeEvent
 	public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
-		String modid = null;
-
-		if(TRLUtils.MC_VERSION_NUMBER == 8) {
-			try {
-				modid = (String) MODID.get(event);
-			} catch(IllegalAccessException ex) {
-				TRLUtils.crashReport("Failed to retrieve mod ID", ex);
-			}
-		} else {
-			modid = event.getModID();
-		}
-
-		MODID_TO_CONFIGS.computeIfAbsent(modid, id -> new ArrayList<>()).
+		MODID_TO_CONFIGS.computeIfAbsent(event.getModID(), id -> new ArrayList<>()).
 				forEach(data -> reloadFromConfig(data.clazz));
 	}
 
 	public static void registerEventHandler() {
-		if(Loader.instance().activeModContainer() != null) {
-			MinecraftForge.EVENT_BUS.register(INSTANCE);
-		}
+		//TODO if active mod container not null
+		MinecraftForge.EVENT_BUS.register(INSTANCE);
 	}
 
 	public static void register(Class<?> clazz) {
@@ -73,11 +51,18 @@ public final class ConfigManager {
 
 		//Ensure path is valid by initializing it first
 		final String pathData = config.path();
-		final String pathString = "config/" + (pathData.isEmpty() ? modid : config.path()) + ".cfg";
+		final String pathString =
+				"config/" + (pathData.isEmpty() ? modid : config.path()) + ".toml";
 		final Path path = Paths.get(pathString).toAbsolutePath();
 
+		try {
+			Files.createDirectories(path.getParent());
+		} catch(IOException ex) {
+			throw new ConfigException("Failed to create configuration directory", ex);
+		}
+
 		final List<TRLCategory> categories = new ArrayList<>();
-		loadCategories(modid + ".config.", "", clazz, categories);
+		loadCategories("", modid + ".config.", "", clazz, categories);
 		final ConfigData data = new ConfigData(clazz, pathString, path, categories);
 
 		CONFIGS.put(clazz, data);
@@ -101,39 +86,29 @@ public final class ConfigManager {
 				if(property.exists(data.config)) {
 					try {
 						if(property.adapter.shouldLoad()) {
-							final Object delayedLoad = data.delayedLoad.get(property.languageKey);
+							final Object delayedLoad =
+									data.delayedLoad.get(property.fullyQualifiedName);
 
 							if(delayedLoad != null) {
 								property.reloadDefault();
-
-								if(delayedLoad instanceof String) {
-									property.get(data.config).setValue((String) delayedLoad);
-								} else {
-									property.get(data.config).setValues((String[]) delayedLoad);
-								}
-
-								data.delayedLoad.remove(property.languageKey);
+								data.config.set(property.fullyQualifiedName, delayedLoad);
+								//TODO necessary?
+								property.set(data.config, delayedLoad);
 							}
 
 							property.deserialize(data.config);
 						} else {
 							//Mainly for ResourceLocations so that if a modded ResourceLocation
 							//is loaded too early, it isn't reset in the config
-
-							final Object value;
-
-							if(property.isArray) {
-								value = property.get(data.config).getStringList();
-							} else {
-								value = property.get(data.config).getString();
-							}
-
-							data.delayedLoad.put(property.languageKey, value);
+							data.delayedLoad.put(
+									property.fullyQualifiedName,
+									data.config.get(property.fullyQualifiedName)
+							);
 						}
 					} catch(Exception ex) {
 						TRLUtils.crashReport(
 								"Failed to deserialize configuration property " +
-										property.languageKey,
+										property.fullyQualifiedName,
 								ex
 						);
 					}
@@ -147,11 +122,7 @@ public final class ConfigManager {
 	public static void writeToDisk(Class<?> clazz) {
 		final ConfigData data = CONFIGS.get(clazz);
 
-		//Reset configuration to remove old properties and categories
-		data.config.getCategoryNames().
-				forEach(name -> data.config.removeCategory(data.config.getCategory(name)));
-
-		data.categories.forEach(category -> category.createPropertyOrder(data.config));
+		//TODO remove old properties and comments
 
 		for(TRLCategory category : data.categories) {
 			category.onReload(false);
@@ -162,21 +133,16 @@ public final class ConfigManager {
 
 			for(TRLProperty property : category.properties) {
 				try {
-					final Property configProperty = property.serialize(data.config);
-					setComment(configProperty, property.commentOnDisk);
-
-					final Object delayedLoad = data.delayedLoad.get(property.languageKey);
+					final Object delayedLoad = data.delayedLoad.get(property.fullyQualifiedName);
 
 					if(delayedLoad != null) {
-						if(delayedLoad instanceof String) {
-							configProperty.setValue((String) delayedLoad);
-						} else {
-							configProperty.setValues((String[]) delayedLoad);
-						}
+						property.set(data.config, delayedLoad);
 					}
 				} catch(Exception ex) {
 					TRLUtils.crashReport(
-							"Failed to serialize configuration property " + property.languageKey, ex
+							"Failed to serialize configuration property " +
+									property.fullyQualifiedName,
+							ex
 					);
 				}
 			}
@@ -192,16 +158,10 @@ public final class ConfigManager {
 		}
 	}
 
-	public static Configuration get(Class<?> clazz) {
-		return CONFIGS.get(clazz).config;
-	}
+	//TODO data.config.close()
 
-	public static List<IConfigElement> getConfigElements(Class<?> clazz) {
-		final Configuration config = get(clazz);
-		return config.getCategoryNames().stream().
-				filter(name -> !name.contains(".")).
-				map(name -> new ConfigElement(config.getCategory(name))).
-				collect(Collectors.toList());
+	public static CommentedFileConfig get(Class<?> clazz) {
+		return CONFIGS.get(clazz).config;
 	}
 
 	public static String getPathString(Class<?> clazz) {
@@ -212,48 +172,15 @@ public final class ConfigManager {
 		return CONFIGS.get(clazz).path;
 	}
 
-	public static String getComment(Property property) {
-		if(TRLUtils.MC_VERSION_NUMBER != 8) {
-			return property.getComment();
-		}
-
-		try {
-			return (String) COMMENT.get(property);
-		} catch(Exception ex) {
-			TRLUtils.crashReport("Error while getting configuration property comment", ex);
-		}
-
-		return null;
-	}
-
-	public static void setComment(Property property, String comment) {
-		if(TRLUtils.MC_VERSION_NUMBER != 8) {
-			property.setComment(comment);
-			return;
-		}
-
-		try {
-			COMMENT.set(property, comment);
-		} catch(Exception ex) {
-			TRLUtils.crashReport("Error while setting configuration property comment", ex);
-		}
-	}
-
 	private static void loadCategories(
-			String languageKeyPrefix, String parentCategory, Class<?> clazz,
-			List<TRLCategory> categories
+			String fullyQualifiedNamePrefix, String languageKeyPrefix, String parentCategory,
+			Class<?> clazz, List<TRLCategory> categories
 	) {
 		for(Field field : clazz.getDeclaredFields()) {
 			final Config.Category categoryData = field.getAnnotation(Config.Category.class);
 
 			if(categoryData == null) {
 				continue;
-			}
-
-			final String comment = StringUtils.join(categoryData.value(), "\n");
-
-			if(comment.trim().isEmpty()) {
-				throw new IllegalArgumentException("Category comment may not be empty");
 			}
 
 			final String name = field.getName();
@@ -271,13 +198,17 @@ public final class ConfigManager {
 			final Class<?> categoryClass = field.getType();
 			final String categoryName = parentCategory + name;
 
-			final TRLCategory category =
-					new TRLCategory(languageKeyPrefix, categoryClass, comment, categoryName);
+			final TRLCategory category = new TRLCategory(
+					fullyQualifiedNamePrefix, languageKeyPrefix, categoryClass, categoryName
+			);
 			loadCategory(category);
 			categories.add(category);
 
 			//Load subcategories
-			loadCategories(languageKeyPrefix, categoryName + ".", categoryClass, categories);
+			loadCategories(
+					fullyQualifiedNamePrefix, languageKeyPrefix, categoryName + ".", categoryClass,
+					categories
+			);
 		}
 	}
 
@@ -328,7 +259,7 @@ public final class ConfigManager {
 				throw new IllegalArgumentException("Version range must not be empty");
 			}
 
-			final VersionRange range = VersionParser.parseRange(versionRange);
+			final VersionRange range = MavenVersionAdapter.createFromVersionSpec(versionRange);
 
 			if(!range.containsVersion(TRLUtils.MC_ARTIFACT_VERSION)) {
 				return false;
@@ -343,11 +274,10 @@ public final class ConfigManager {
 
 		final int forgeBuild = minForgeBuild.value();
 
-		//Oldest Forge 1.8 build
-		if(forgeBuild < 1237) {
+		if(forgeBuild < 1) {
 			throw new IllegalArgumentException("Invalid Forge build: " + forgeBuild);
 		}
 
-		return ForgeVersion.getBuildVersion() >= forgeBuild;
+		return TRLUtils.FORGE_BUILD >= forgeBuild;
 	}
 }

@@ -6,35 +6,31 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.therandomlabs.randomlib.CompatForgeRegistry;
-import com.therandomlabs.randomlib.CompatForgeRegistryEntry;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.therandomlabs.randomlib.TRLUtils;
-import com.therandomlabs.randomlib.config.adapter.TRLTypeAdapter;
-import com.therandomlabs.randomlib.config.adapter.TRLTypeAdapters;
-import net.minecraftforge.common.config.ConfigCategory;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
+import com.therandomlabs.randomlib.config.adapter.TypeAdapter;
+import com.therandomlabs.randomlib.config.adapter.TypeAdapters;
+import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraftforge.registries.IForgeRegistryEntry;
+import net.minecraftforge.registries.RegistryManager;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 //Enums are implemented as a special case here instead of in TRLTypeAdapters
 //Numbers also receive some special treatment
 final class TRLProperty {
-	private static boolean canSetValidValuesDisplay = true;
-
 	final TRLCategory category;
 
 	final String name;
 	final Field field;
 
+	final String fullyQualifiedName;
 	final String languageKey;
 
-	final String previousName;
-	final String previousCategory;
+	final String previous;
 
-	final TRLTypeAdapter adapter;
+	final TypeAdapter adapter;
 	final Class<?> clazz;
-	final Property.Type type;
 	final boolean isArray;
 	final boolean isResourceLocation;
 
@@ -45,10 +41,10 @@ final class TRLProperty {
 
 	Object defaultValue;
 
-	final boolean nonNull;
-
 	final boolean requiresMCRestart;
 	final boolean requiresWorldReload;
+
+	final boolean nonNull;
 
 	final double min;
 	final double max;
@@ -65,28 +61,22 @@ final class TRLProperty {
 		this.name = name;
 		this.field = field;
 
+		fullyQualifiedName = this.category.getFullyQualifiedName() + "." + name;
 		languageKey = this.category.getLanguageKeyPrefix() + name;
 
-		if(previous == null) {
-			previousName = null;
-			previousCategory = null;
-		} else {
-			final String[] data = StringUtils.split(previous, '.');
-			previousName = data[data.length - 1];
-			previousCategory = StringUtils.join(data, '.', 0, data.length - 1);
-		}
+		this.previous = previous;
 
 		clazz = field.getType();
 
 		if(Enum.class.isAssignableFrom(clazz)) {
 			enumClass = clazz;
-			adapter = TRLTypeAdapters.get(String.class);
+			adapter = TypeAdapters.get(String.class);
 		} else if(Enum[].class.isAssignableFrom(clazz)) {
 			enumClass = clazz.getComponentType();
-			adapter = TRLTypeAdapters.get(String[].class);
+			adapter = TypeAdapters.get(String[].class);
 		} else {
 			enumClass = null;
-			adapter = TRLTypeAdapters.get(clazz);
+			adapter = TypeAdapters.get(clazz);
 		}
 
 		if(adapter == null) {
@@ -114,10 +104,8 @@ final class TRLProperty {
 			this.validValuesDisplay = validValuesDisplay.toArray(new String[0]);
 		}
 
-		type = adapter.getType();
 		isArray = adapter.isArray();
-		isResourceLocation = CompatForgeRegistryEntry.CLASS != null &&
-				CompatForgeRegistryEntry.CLASS.isAssignableFrom(clazz);
+		isResourceLocation = IForgeRegistryEntry.class.isAssignableFrom(clazz);
 
 		Object defaultValue = null;
 
@@ -250,31 +238,31 @@ final class TRLProperty {
 
 		this.comment = comment;
 
-		final StringBuilder commentOnDisk = new StringBuilder(comment);
+		final StringBuilder commentOnDisk = new StringBuilder(" ").append(comment);
 
 		if(enumConstants != null) {
-			commentOnDisk.append("\nValid values:");
+			commentOnDisk.append("\n Valid values:");
 
 			for(Enum element : enumConstants) {
-				commentOnDisk.append("\n").append(element.name());
+				commentOnDisk.append("\n ").append(element.name());
 			}
 		}
 
 		if(defaultValue instanceof Number) {
 			if(defaultValue instanceof Double || defaultValue instanceof Float) {
-				commentOnDisk.append("\nMin: ").
+				commentOnDisk.append("\n Min: ").
 						append(min).
-						append("\nMax: ").
+						append("\n Max: ").
 						append(max);
 			} else {
-				commentOnDisk.append("\nMin: ").
+				commentOnDisk.append("\n Min: ").
 						append((long) min).
-						append("\nMax: ").
+						append("\n Max: ").
 						append((long) max);
 			}
 		}
 
-		commentOnDisk.append("\nDefault: ");
+		commentOnDisk.append("\n Default: ");
 
 		if(isArray) {
 			commentOnDisk.append(
@@ -291,13 +279,15 @@ final class TRLProperty {
 
 	//For registry entries, the default value might be registry replaced after the property
 	//is initialized
+	@SuppressWarnings("unchecked")
 	void reloadDefault() {
 		if(!isArray) {
 			if(defaultValue != null) {
-				final CompatForgeRegistry registry = CompatForgeRegistry.findRegistry(clazz);
-				defaultValue = registry.getValue(
-						new CompatForgeRegistryEntry(defaultValue).getRegistryName()
+				final IForgeRegistry registry = RegistryManager.ACTIVE.getRegistry(
+						(Class<IForgeRegistryEntry<?>>) clazz
 				);
+				defaultValue =
+						registry.getValue(((IForgeRegistryEntry) defaultValue).getRegistryName());
 			}
 
 			return;
@@ -305,85 +295,41 @@ final class TRLProperty {
 
 		final Object[] oldDefaults = (Object[]) defaultValue;
 		final List<Object> newDefaults = new ArrayList<>(oldDefaults.length);
-		final CompatForgeRegistry registry =
-				CompatForgeRegistry.findRegistry(clazz.getComponentType());
+		final IForgeRegistry registry = RegistryManager.ACTIVE.getRegistry(
+				(Class<IForgeRegistryEntry<?>>) clazz.getComponentType()
+		);
 
 		for(Object oldDefault : oldDefaults) {
 			newDefaults.add(
-					registry.getValue(new CompatForgeRegistryEntry(oldDefault).getRegistryName())
+					registry.getValue(((IForgeRegistryEntry) oldDefault).getRegistryName())
 			);
 		}
 
 		defaultValue = newDefaults.toArray(Arrays.copyOf(oldDefaults, 0));
 	}
 
-	boolean exists(Configuration config) {
-		return config.getCategory(category.name).get(name) != null || getPrevious(config) != null;
+	boolean exists(CommentedFileConfig config) {
+		return config.contains(fullyQualifiedName) ||
+				(previous != null && config.contains(previous));
 	}
 
-	Property getPrevious(Configuration config) {
-		if(previousName == null || !config.hasCategory(previousCategory)) {
-			return null;
+	Object get(CommentedFileConfig config) {
+		if(!config.contains(fullyQualifiedName)) {
+			set(config, defaultValue);
 		}
 
-		final Property property = config.getCategory(previousCategory).get(previousName);
-		return property != null && property.getType() == type ? property : null;
+		//Validate
+		set(config, adapter.getValue(config, fullyQualifiedName, defaultValue));
+		return adapter.getValue(config, fullyQualifiedName, defaultValue);
 	}
 
-	Property get(Configuration config) {
-		final ConfigCategory category = this.category.get(config);
-		Property property = category.get(name);
+	String getAsString(CommentedFileConfig config) {
+		return adapter.asString(get(config));
+	}
 
-		if(property == null) {
-			property = getPrevious(config);
-
-			if(property == null) {
-				if(isArray) {
-					property = new Property(name, new String[0], type);
-				} else {
-					property = new Property(name, (String) null, type);
-				}
-			}
-
-			category.put(name, property);
-		}
-
-		ConfigManager.setComment(property, comment);
-		property.setLanguageKey(languageKey);
-
-		if(enumClass == null) {
-			adapter.setDefaultValue(property, defaultValue);
-		} else {
-			if(isArray) {
-				property.setDefaultValues(
-						Arrays.stream((Enum[]) defaultValue).
-								map(Enum::name).
-								toArray(String[]::new)
-				);
-			} else {
-				property.setDefaultValue(((Enum) defaultValue).name());
-			}
-		}
-
-		property.setValidValues(validValues);
-
-		if(TRLUtils.MC_VERSION_NUMBER > 11 && canSetValidValuesDisplay) {
-			try {
-				property.setValidValuesDisplay(validValuesDisplay);
-			} catch(NoSuchMethodError e) {
-				canSetValidValuesDisplay = false;
-			}
-		}
-
-		if(defaultValue instanceof Double || defaultValue instanceof Float) {
-			property.setMinValue(min);
-			property.setMaxValue(max);
-		} else if(defaultValue instanceof Number) {
-			property.setMinValue((int) min);
-			property.setMaxValue((int) max);
-		}
-
-		return property;
+	void set(CommentedFileConfig config, Object value) {
+		config.setComment(fullyQualifiedName, commentOnDisk);
+		adapter.setValue(config, fullyQualifiedName, validate(value, isArray));
 	}
 
 	Object validate(Object value, boolean isArray) {
@@ -449,8 +395,7 @@ final class TRLProperty {
 		return value;
 	}
 
-	Property serialize(Configuration config) throws IllegalAccessException {
-		final Property property = get(config);
+	void serialize(CommentedFileConfig config) throws IllegalAccessException {
 		Object value = validate(field.get(null), isArray);
 
 		if(value == null) {
@@ -458,24 +403,17 @@ final class TRLProperty {
 		}
 
 		if(enumConstants == null) {
-			adapter.setValue(property, value);
-			return property;
+			set(config, value);
+		} else if(!isArray) {
+			set(config, ((Enum) value).name());
+		} else {
+			set(config, Arrays.stream((Enum[]) value).map(Enum::name).toArray(String[]::new));
 		}
-
-		if(!isArray) {
-			property.setValue(((Enum) value).name());
-			return property;
-		}
-
-		property.setValues(Arrays.stream((Enum[]) value).map(Enum::name).toArray(String[]::new));
-		return property;
 	}
 
-	Property deserialize(Configuration config) throws IllegalAccessException {
-		final Property property = get(config);
-
+	void deserialize(CommentedFileConfig config) throws IllegalAccessException {
 		if(enumConstants == null) {
-			final Object value = adapter.getValue(property);
+			final Object value = get(config);
 
 			if(nonNull && value == null) {
 				field.set(null, defaultValue);
@@ -484,26 +422,26 @@ final class TRLProperty {
 				field.set(null, validated == null ? defaultValue : validated);
 			}
 
-			return property;
+			return;
 		}
 
 		//Ignore underscores when matching enums
 		//Hopefully this will never cause issues
 		if(!isArray) {
-			final String value = StringUtils.remove(property.getString(), '_');
+			final String value = StringUtils.remove(getAsString(config), '_');
 
 			for(Enum element : enumConstants) {
 				if(StringUtils.remove(element.name(), '_').equalsIgnoreCase(value)) {
 					field.set(null, element);
-					return property;
+					return;
 				}
 			}
 
 			field.set(null, defaultValue);
-			return property;
+			return;
 		}
 
-		final String[] values = property.getStringList();
+		final String[] values = (String[]) get(config);
 		final List<Object> enumValues = new ArrayList<>(values.length);
 
 		for(String value : values) {
@@ -518,6 +456,5 @@ final class TRLProperty {
 		}
 
 		field.set(null, enumValues.toArray((Object[]) Array.newInstance(enumClass, 0)));
-		return property;
 	}
 }

@@ -1,40 +1,58 @@
 package com.therandomlabs.randomlib;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import cpw.mods.modlauncher.ArgumentHandler;
+import cpw.mods.modlauncher.Launcher;
 import net.minecraft.crash.CrashReport;
-import net.minecraft.launchwrapper.Launch;
-import net.minecraft.util.ReportedException;
-import net.minecraftforge.fml.common.versioning.ArtifactVersion;
-import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion;
-import net.minecraftforge.fml.relauncher.FMLInjectionData;
-import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
+import net.minecraft.crash.ReportedException;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.versions.forge.ForgeVersion;
+import net.minecraftforge.versions.mcp.MCPVersion;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
 public final class TRLUtils {
-	public static final boolean IS_DEOBFUSCATED =
-			(boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
-	public static final boolean IS_CLIENT = FMLLaunchHandler.side().isClient();
-	public static final String MC_VERSION = (String) FMLInjectionData.data()[4];
+	public static final boolean IS_DEOBFUSCATED;
+	public static final boolean IS_CLIENT = FMLEnvironment.dist.isClient();
+	public static final String MC_VERSION = MCPVersion.getMCVersion();
 	public static final int MC_VERSION_NUMBER = Integer.parseInt(MC_VERSION.split("\\.")[1]);
 	public static final ArtifactVersion MC_ARTIFACT_VERSION =
-			new DefaultArtifactVersion("minecraft", MC_VERSION);
+			new DefaultArtifactVersion(MC_VERSION);
+	public static final int FORGE_BUILD =
+			Integer.parseInt(ForgeVersion.getVersion().split("\\.")[2]);
+
+	private static final Logger LOGGER = LogManager.getLogger("randomlib");
 
 	private static Field modifiers;
 
-	private TRLUtils() {}
+	static {
+		boolean isDeobfuscated = false;
 
-	@SuppressWarnings("deprecation")
-	public static String localize(String key, Object... args) {
-		//Use the fully qualified class name so the compiler doesn't throw a warning at us
-		//https://bugs.openjdk.java.net/browse/JDK-8032211
-		return net.minecraft.util.text.translation.I18n.translateToLocalFormatted(key, args);
+		try {
+			final Object argumentHandler =
+					findField(Launcher.class, "argumentHandler").get(Launcher.INSTANCE);
+			final Object launchTarget =
+					findMethod(ArgumentHandler.class, "getLaunchTarget").invoke(argumentHandler);
+			isDeobfuscated = "fmluserdevclient".equals(launchTarget) ||
+					"fmluserdevserver".equals(launchTarget);
+		} catch(IllegalAccessException | InvocationTargetException ex) {
+			LOGGER.error("Failed to determine launch target", ex);
+		}
+
+		IS_DEOBFUSCATED = isDeobfuscated;
 	}
+
+	private TRLUtils() {}
 
 	public static Object toPrimitiveArray(Object[] boxedArray) {
 		if(boxedArray instanceof Boolean[]) {
@@ -109,7 +127,7 @@ public final class TRLUtils {
 			return ArrayUtils.toObject((long[]) primitiveArray);
 		}
 
-		return null;
+		return (Object[]) primitiveArray;
 	}
 
 	public static Path getPath(String path) {

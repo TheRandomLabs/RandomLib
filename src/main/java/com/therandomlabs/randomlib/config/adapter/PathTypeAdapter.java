@@ -2,11 +2,13 @@ package com.therandomlabs.randomlib.config.adapter;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.therandomlabs.randomlib.TRLUtils;
-import net.minecraftforge.common.config.Property;
 
-public final class PathTypeAdapter implements TRLTypeAdapter {
+public final class PathTypeAdapter implements TypeAdapter {
 	private final boolean isArray;
 
 	public PathTypeAdapter(boolean isArray) {
@@ -14,15 +16,15 @@ public final class PathTypeAdapter implements TRLTypeAdapter {
 	}
 
 	@Override
-	public Object getValue(Property property) {
+	public Object getValue(CommentedFileConfig config, String name, Object defaultValue) {
 		if(!isArray) {
-			return TRLUtils.getPath(property.getString());
+			return TRLUtils.getPath(config.get(name));
 		}
 
-		final String[] array = property.getStringList();
-		final List<Path> values = new ArrayList<>(array.length);
+		final List<String> list = config.get(name);
+		final List<Path> values = new ArrayList<>(list.size());
 
-		for(String element : array) {
+		for(String element : list) {
 			final Path path = TRLUtils.getPath(element);
 
 			if(path != null) {
@@ -31,6 +33,20 @@ public final class PathTypeAdapter implements TRLTypeAdapter {
 		}
 
 		return values.toArray(new Path[0]);
+	}
+
+	@Override
+	public void setValue(CommentedFileConfig config, String name, Object value) {
+		if(isArray) {
+			config.set(
+					name,
+					Arrays.stream((Object[]) value).
+							map(this::asString).
+							collect(Collectors.toList())
+			);
+		} else {
+			config.set(name, asString(value));
+		}
 	}
 
 	@Override
