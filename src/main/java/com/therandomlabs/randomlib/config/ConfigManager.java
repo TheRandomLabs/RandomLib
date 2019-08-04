@@ -12,9 +12,6 @@ import java.util.List;
 import java.util.Map;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.therandomlabs.randomlib.TRLUtils;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.forgespi.language.MavenVersionAdapter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.VersionRange;
@@ -26,17 +23,6 @@ public final class ConfigManager {
 	private static final Map<String, List<ConfigData>> MODID_TO_CONFIGS = new HashMap<>();
 
 	private ConfigManager() {}
-
-	@SubscribeEvent
-	public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
-		MODID_TO_CONFIGS.computeIfAbsent(event.getModID(), id -> new ArrayList<>()).
-				forEach(data -> reloadFromConfig(data.clazz));
-	}
-
-	public static void registerEventHandler() {
-		//TODO if active mod container not null
-		MinecraftForge.EVENT_BUS.register(INSTANCE);
-	}
 
 	public static void register(Class<?> clazz) {
 		final Config config = clazz.getAnnotation(Config.class);
@@ -69,7 +55,6 @@ public final class ConfigManager {
 		MODID_TO_CONFIGS.computeIfAbsent(modid, id -> new ArrayList<>()).add(data);
 
 		reloadFromDisk(clazz);
-		registerEventHandler();
 	}
 
 	public static void reloadFromDisk(Class<?> clazz) {

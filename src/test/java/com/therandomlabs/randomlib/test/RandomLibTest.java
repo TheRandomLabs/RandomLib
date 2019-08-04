@@ -1,7 +1,10 @@
 package com.therandomlabs.randomlib.test;
 
+import com.therandomlabs.randomlib.config.CommandConfigReload;
 import com.therandomlabs.randomlib.config.ConfigManager;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,14 +15,13 @@ public final class RandomLibTest {
 
 	public RandomLibTest() {
 		ConfigManager.register(ConfigTest.class);
+		MinecraftForge.EVENT_BUS.addListener(this::serverStarting);
 	}
 
-	/*
-	* ClientCommandHandler.instance.registerCommand(CommandConfigReload.client(
-				"rltreloadclient", ConfigTest.class
-		));
-	* event.registerServerCommand(CommandConfigReload.server(
-				"rltreload", "rltreloadclient", ConfigTest.class,
+	private void serverStarting(FMLServerStartingEvent event) {
+		CommandConfigReload.server(
+				event.getCommandDispatcher(), "rltreload", "rltreloadclient", ConfigTest.class,
 				"RandomLib Test configuration reloaded!"
-		));*/
+		);
+	}
 }

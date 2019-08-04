@@ -75,25 +75,6 @@ jar {
 	}
 }
 
-sourceSets {
-	test {
-		java {
-			srcDir "src/test/java"
-		}
-
-		resources {
-			srcDir "src/test/resources"
-		}
-
-		compileClasspath += main.output
-		compileClasspath += main.compileClasspath
-	}
-
-	main {
-		runtimeClasspath += test.output
-	}
-}
-
 import net.minecraftforge.gradle.common.task.SignJar
 
 task signJar(type: SignJar, dependsOn: jar) {

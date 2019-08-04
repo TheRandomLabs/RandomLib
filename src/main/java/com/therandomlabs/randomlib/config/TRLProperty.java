@@ -80,8 +80,11 @@ final class TRLProperty {
 		}
 
 		if(adapter == null) {
-			throw new UnsupportedOperationException(
-					"Invalid configuration property type: " + clazz.getName()
+			throw new ConfigException(
+					name,
+					new UnsupportedOperationException(
+							"Invalid configuration property type: " + clazz.getName()
+					)
 			);
 		}
 

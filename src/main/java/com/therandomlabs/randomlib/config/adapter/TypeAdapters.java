@@ -279,7 +279,7 @@ public final class TypeAdapters {
 
 		if(IForgeRegistryEntry.class.isAssignableFrom(clazz)) {
 			register((Class<IForgeRegistryEntry<?>>) clazz);
-		} else {
+		} else if(clazz.isArray()) {
 			final Class<?> componentType = clazz.getComponentType();
 
 			if(IForgeRegistryEntry.class.isAssignableFrom(componentType)) {
