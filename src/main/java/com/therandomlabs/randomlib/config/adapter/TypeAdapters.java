@@ -17,19 +17,16 @@ public final class TypeAdapters {
 		final Class[] defaultAdapterClasses = {
 				boolean.class,
 				Boolean.class,
-				byte.class,
 				Byte.class,
 				char.class,
 				Character.class,
 				double.class,
 				Double.class,
-				float.class,
 				Float.class,
 				int.class,
 				Integer.class,
 				long.class,
 				Long.class,
-				short.class,
 				Short.class
 		};
 
@@ -60,6 +57,14 @@ public final class TypeAdapters {
 			@Override
 			public boolean isArray() {
 				return true;
+			}
+		});
+
+		register(byte.class, new TypeAdapter() {
+			@Override
+			public Object getValue(CommentedFileConfig config, String name, Object defaultValue) {
+				final Object value = config.get(name);
+				return value instanceof Byte ? value : (byte) (int) value;
 			}
 		});
 
@@ -143,6 +148,14 @@ public final class TypeAdapters {
 			}
 		});
 
+		register(float.class, new TypeAdapter() {
+			@Override
+			public Object getValue(CommentedFileConfig config, String name, Object defaultValue) {
+				final Object value = config.get(name);
+				return value instanceof Float ? value : (float) (double) value;
+			}
+		});
+
 		register(float[].class, new TypeAdapter() {
 			@Override
 			public Object getValue(CommentedFileConfig config, String name, Object defaultValue) {
@@ -218,6 +231,14 @@ public final class TypeAdapters {
 			@Override
 			public boolean isArray() {
 				return true;
+			}
+		});
+
+		register(short.class, new TypeAdapter() {
+			@Override
+			public Object getValue(CommentedFileConfig config, String name, Object defaultValue) {
+				final Object value = config.get(name);
+				return value instanceof Short ? value : (short) (int) value;
 			}
 		});
 

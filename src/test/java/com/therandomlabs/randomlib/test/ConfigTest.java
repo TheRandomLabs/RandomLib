@@ -32,13 +32,13 @@ public final class ConfigTest {
 		@Config.Property("The flying pig range.")
 		public static int flyingPigRange = 3;
 
-		/*@Config.NonNull
+		@Config.NonNull
 		@Config.Blacklist({
 				"minecraft:air",
 				"minecraft:stick"
 		})
 		@Config.Property("The flying pig item.")
-		public static Item flyingPigItem = Items.ACACIA_BOAT;*/
+		public static Item flyingPigItem = Items.ACACIA_BOAT;
 
 		@Config.Property("The flying pig color.")
 		public static ConfigColor flyingPigColor = ConfigColor.BLUE;
@@ -51,20 +51,21 @@ public final class ConfigTest {
 				1, 3, 5, 7
 		};
 
-		/*@Config.Property("Test item array property.")
+		@Config.Property("Test item array property.")
 		public static Item[] testItemArrayProperty = {};
 
 		@Config.Property("Null default item.")
-		public static Item nullDefaultItem;*/
+		public static Item nullDefaultItem;
 
 		@Config.Previous("flyingPigs.whereDidHeComeFrom")
 		@Config.Property("Where did he come from, where did he go?")
 		public static boolean whereDidHeGo;
 
 		public static void onReload() {
-			/*if(flyingPigItem == Items.APPLE) {
+			if(flyingPigItem == Items.APPLE) {
 				flyingPigRange++; //If this is above 3, then it will be reset to 3
-			}*/
+			}
+
 			RandomLibTest.LOGGER.info("Flying pig range: " + flyingPigRange);
 		}
 	}
