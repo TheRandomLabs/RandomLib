@@ -23,7 +23,7 @@ archivesBaseName = "randomlib"
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = "1.8"
 
 minecraft {
-	mappings channel: "snapshot", version: "20190805-1.14.3"
+	mappings channel: "snapshot", version: "20190810-1.14.3"
 
 	accessTransformer = file("src/main/resources/META-INF/accesstransformer.cfg")
 
@@ -37,6 +37,7 @@ minecraft {
 			mods {
 				randomlibtest {
 					source sourceSets.test
+					source sourceSets.main
 				}
 			}
 		}
@@ -50,6 +51,7 @@ minecraft {
 			mods {
 				randomlibtest {
 					source sourceSets.test
+					source sourceSets.main
 				}
 			}
 		}
@@ -57,7 +59,7 @@ minecraft {
 }
 
 dependencies {
-	minecraft "net.minecraftforge:forge:1.14.4-28.0.41"
+	minecraft "net.minecraftforge:forge:1.14.4-28.0.45"
 }
 
 jar {

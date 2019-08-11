@@ -8,17 +8,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.google.common.collect.Lists;
 import com.therandomlabs.randomlib.TRLUtils;
 import net.minecraftforge.forgespi.language.MavenVersionAdapter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.VersionRange;
 
 public final class ConfigManager {
-	private static final ConfigManager INSTANCE = new ConfigManager();
-
 	private static final Map<Class<?>, ConfigData> CONFIGS = new HashMap<>();
 	private static final Map<String, List<ConfigData>> MODID_TO_CONFIGS = new HashMap<>();
 
@@ -33,7 +35,13 @@ public final class ConfigManager {
 
 		//We have to assume it's valid since if this is being loaded before Minecraft Forge is
 		//initialized (i.e. in a coremod), Loader.isModLoaded cannot be called
-		final String modid = config.value();
+		final String modid = config.modid();
+
+		final String[] comment = config.comment();
+
+		if(StringUtils.join(comment).trim().isEmpty()) {
+			throw new IllegalArgumentException("Configuration comment may not be empty");
+		}
 
 		//Ensure path is valid by initializing it first
 		final String pathData = config.path();
@@ -49,7 +57,7 @@ public final class ConfigManager {
 
 		final List<TRLCategory> categories = new ArrayList<>();
 		loadCategories("", modid + ".config.", "", clazz, categories);
-		final ConfigData data = new ConfigData(clazz, pathString, path, categories);
+		final ConfigData data = new ConfigData(comment, clazz, pathString, path, categories);
 
 		CONFIGS.put(clazz, data);
 		MODID_TO_CONFIGS.computeIfAbsent(modid, id -> new ArrayList<>()).add(data);
@@ -77,8 +85,7 @@ public final class ConfigManager {
 							if(delayedLoad != null) {
 								property.reloadDefault();
 								data.config.set(property.fullyQualifiedName, delayedLoad);
-								//TODO necessary?
-								property.set(data.config, delayedLoad);
+								data.delayedLoad.remove(property.fullyQualifiedName);
 							}
 
 							property.deserialize(data.config);
@@ -106,10 +113,31 @@ public final class ConfigManager {
 
 	public static void writeToDisk(Class<?> clazz) {
 		final ConfigData data = CONFIGS.get(clazz);
+		final List<CommentedConfig> subConfigs = Lists.newArrayList(data.config);
 
-		//TODO remove old properties and comments
+		//Remove all comments so we can tell which properties and categories no longer exist
+		//afterwards
+		while(!subConfigs.isEmpty()) {
+			final int size = subConfigs.size();
+
+			for(int i = 0; i < size; i++) {
+				for(CommentedConfig.Entry entry : subConfigs.get(i).entrySet()) {
+					entry.removeComment();
+
+					final Object raw = entry.getRawValue();
+
+					if(raw instanceof CommentedConfig) {
+						subConfigs.add((CommentedConfig) raw);
+					}
+				}
+			}
+
+			subConfigs.subList(0, size).clear();
+		}
 
 		for(TRLCategory category : data.categories) {
+			category.initialize(data.config);
+
 			category.onReload(false);
 
 			if(TRLUtils.IS_CLIENT) {
@@ -118,10 +146,12 @@ public final class ConfigManager {
 
 			for(TRLProperty property : category.properties) {
 				try {
+					property.get(data.config);
+
 					final Object delayedLoad = data.delayedLoad.get(property.fullyQualifiedName);
 
 					if(delayedLoad != null) {
-						property.set(data.config, delayedLoad);
+						data.config.set(property.fullyQualifiedName, delayedLoad);
 					}
 				} catch(Exception ex) {
 					TRLUtils.crashReport(
@@ -133,17 +163,47 @@ public final class ConfigManager {
 			}
 		}
 
+		//Remove all entries without a comment, i.e. entries that are not defined in the
+		//configuration class
+
+		subConfigs.add(data.config);
+
+		while(!subConfigs.isEmpty()) {
+			final int size = subConfigs.size();
+
+			for(int i = 0; i < size; i++) {
+				final CommentedConfig subConfig = subConfigs.get(i);
+				final Set<String> toRemove = new HashSet<>();
+
+				for(CommentedConfig.Entry entry : subConfig.entrySet()) {
+					if(entry.getComment() == null) {
+						toRemove.add(entry.getKey());
+						continue;
+					}
+
+					final Object raw = entry.getRawValue();
+
+					if(raw instanceof CommentedConfig) {
+						subConfigs.add((CommentedConfig) raw);
+					}
+				}
+
+				toRemove.forEach(subConfig::remove);
+			}
+
+			subConfigs.subList(0, size).clear();
+		}
+
 		data.config.save();
 
-		//Reset comments
-		for(TRLCategory category : data.categories) {
-			for(TRLProperty property : category.properties) {
-				property.get(data.config); //Sets comment back to normal
-			}
+		try {
+			final List<String> lines = new ArrayList<>(Files.readAllLines(data.path));
+			lines.addAll(0, data.comment);
+			Files.write(data.path, lines);
+		} catch(IOException ex) {
+			throw new ConfigException("Failed to write config", ex);
 		}
 	}
-
-	//TODO data.config.close()
 
 	public static CommentedFileConfig get(Class<?> clazz) {
 		return CONFIGS.get(clazz).config;
@@ -168,6 +228,12 @@ public final class ConfigManager {
 				continue;
 			}
 
+			final String comment = " " + StringUtils.join(categoryData.value(), "\n ");
+
+			if(comment.trim().isEmpty()) {
+				throw new IllegalArgumentException("Category comment may not be empty");
+			}
+
 			final String name = field.getName();
 			final int modifiers = field.getModifiers();
 
@@ -184,7 +250,8 @@ public final class ConfigManager {
 			final String categoryName = parentCategory + name;
 
 			final TRLCategory category = new TRLCategory(
-					fullyQualifiedNamePrefix, languageKeyPrefix, categoryClass, categoryName
+					fullyQualifiedNamePrefix, languageKeyPrefix, categoryClass, comment,
+					categoryName
 			);
 			loadCategory(category);
 			categories.add(category);
@@ -205,7 +272,7 @@ public final class ConfigManager {
 				continue;
 			}
 
-			final String comment = StringUtils.join(propertyData.value(), "\n");
+			final String comment = " " + StringUtils.join(propertyData.value(), "\n ");
 
 			if(comment.trim().isEmpty()) {
 				throw new IllegalArgumentException("Property comment may not be empty");

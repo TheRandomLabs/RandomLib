@@ -10,7 +10,10 @@ import java.lang.annotation.Target;
 public @interface Config {
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
-	@interface Category {}
+	@interface Category {
+		//Comment
+		String[] value();
+	}
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
@@ -74,8 +77,9 @@ public @interface Config {
 		int value();
 	}
 
-	//Mod ID
-	String value();
+	String modid();
+
+	String[] comment();
 
 	String path() default "";
 }

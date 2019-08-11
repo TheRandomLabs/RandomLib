@@ -52,7 +52,6 @@ final class TRLProperty {
 	final String[] blacklist;
 
 	final String comment;
-	final String commentOnDisk;
 
 	@SuppressWarnings("unchecked")
 	TRLProperty(TRLCategory category, String name, Field field, String comment, String previous) {
@@ -239,45 +238,43 @@ final class TRLProperty {
 			throw new IllegalArgumentException("Default value is blacklisted");
 		}
 
-		this.comment = comment;
-
-		final StringBuilder commentOnDisk = new StringBuilder(" ").append(comment);
+		final StringBuilder commentBuilder = new StringBuilder(comment);
 
 		if(enumConstants != null) {
-			commentOnDisk.append("\n Valid values:");
+			commentBuilder.append("\n Valid values:");
 
 			for(Enum element : enumConstants) {
-				commentOnDisk.append("\n ").append(element.name());
+				commentBuilder.append("\n ").append(element.name());
 			}
 		}
 
 		if(defaultValue instanceof Number) {
 			if(defaultValue instanceof Double || defaultValue instanceof Float) {
-				commentOnDisk.append("\n Min: ").
+				commentBuilder.append("\n Min: ").
 						append(min).
 						append("\n Max: ").
 						append(max);
 			} else {
-				commentOnDisk.append("\n Min: ").
+				commentBuilder.append("\n Min: ").
 						append((long) min).
 						append("\n Max: ").
 						append((long) max);
 			}
 		}
 
-		commentOnDisk.append("\n Default: ");
+		commentBuilder.append("\n Default: ");
 
 		if(isArray) {
-			commentOnDisk.append(
+			commentBuilder.append(
 					Arrays.stream(TRLUtils.toBoxedArray(defaultValue)).
 							map(adapter::asString).
 							collect(Collectors.toList())
 			);
 		} else {
-			commentOnDisk.append(adapter.asString(defaultValue));
+			commentBuilder.append(adapter.asString(defaultValue));
 		}
 
-		this.commentOnDisk = commentOnDisk.toString();
+		this.comment = commentBuilder.toString();
 	}
 
 	//For registry entries, the default value might be registry replaced after the property
@@ -318,7 +315,11 @@ final class TRLProperty {
 
 	Object get(CommentedFileConfig config) {
 		if(!config.contains(fullyQualifiedName)) {
-			set(config, defaultValue);
+			if(previous != null && config.contains(previous)) {
+				config.set(fullyQualifiedName, config.get(previous));
+			} else {
+				set(config, defaultValue);
+			}
 		}
 
 		//Validate
@@ -331,7 +332,7 @@ final class TRLProperty {
 	}
 
 	void set(CommentedFileConfig config, Object value) {
-		config.setComment(fullyQualifiedName, commentOnDisk);
+		config.setComment(fullyQualifiedName, comment);
 		adapter.setValue(config, fullyQualifiedName, validate(value, isArray));
 	}
 
@@ -428,9 +429,9 @@ final class TRLProperty {
 			return;
 		}
 
-		//Ignore underscores when matching enums
-		//Hopefully this will never cause issues
 		if(!isArray) {
+			//Ignore underscores when matching enums
+			//Hopefully this will never cause issues
 			final String value = StringUtils.remove(getAsString(config), '_');
 
 			for(Enum element : enumConstants) {

@@ -6,7 +6,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.therandomlabs.randomlib.TRLUtils;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.ModLoadingStage;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 import net.minecraftforge.registries.RegistryManager;
@@ -79,7 +81,6 @@ public final class ResourceLocationTypeAdapter implements TypeAdapter {
 
 	@Override
 	public boolean shouldLoad() {
-		//TODO has reached initialization
-		return true;
+		return TRLUtils.hasReachedStage(ModLoadingStage.COMMON_SETUP);
 	}
 }

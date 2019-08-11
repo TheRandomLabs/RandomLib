@@ -7,7 +7,11 @@ import com.therandomlabs.randomlib.config.ConfigColor;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 
-@Config(value = RandomLibTest.MOD_ID, path = RandomLibTest.MOD_ID + "/main")
+@Config(
+		modid = RandomLibTest.MOD_ID,
+		comment = "RandomLib Test main configuration",
+		path = RandomLibTest.MOD_ID + "/main"
+)
 public final class ConfigTest {
 	public static final class FlyingPigs {
 		public static final class Lol {
@@ -15,7 +19,7 @@ public final class ConfigTest {
 			public static boolean test = true;
 		}
 
-		@Config.Category
+		@Config.Category("lol")
 		public static final Lol lol = null;
 
 		//Blacklist the current directory
@@ -70,6 +74,6 @@ public final class ConfigTest {
 		}
 	}
 
-	@Config.Category
+	@Config.Category("Options related to flying pigs.")
 	public static final FlyingPigs flyingPigs = null;
 }

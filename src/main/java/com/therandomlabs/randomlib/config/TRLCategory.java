@@ -6,6 +6,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.therandomlabs.randomlib.TRLUtils;
 
 final class TRLCategory {
@@ -13,6 +14,7 @@ final class TRLCategory {
 	final String languageKeyPrefix;
 	final String languageKey;
 	final Class<?> clazz;
+	final String comment;
 	final String name;
 	final List<TRLProperty> properties = new ArrayList<>();
 
@@ -20,15 +22,21 @@ final class TRLCategory {
 	final Method onReloadClient;
 
 	TRLCategory(
-			String fullyQualifiedNamePrefix, String languageKeyPrefix, Class<?> clazz, String name
+			String fullyQualifiedNamePrefix, String languageKeyPrefix, Class<?> clazz,
+			String comment, String name
 	) {
 		fullyQualifiedName = fullyQualifiedNamePrefix + name;
 		this.languageKeyPrefix = languageKeyPrefix;
 		languageKey = languageKeyPrefix + name;
 		this.clazz = clazz;
+		this.comment = comment;
 		this.name = TRLUtils.MC_VERSION_NUMBER == 8 ? name.toLowerCase(Locale.ENGLISH) : name;
 		onReload = getOnReloadMethod(clazz, "onReload");
 		onReloadClient = getOnReloadMethod(clazz, "onReloadClient");
+	}
+
+	void initialize(CommentedFileConfig config) {
+		config.setComment(fullyQualifiedName, comment);
 	}
 
 	void onReload(boolean client) {

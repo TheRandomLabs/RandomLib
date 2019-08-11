@@ -12,6 +12,8 @@ import cpw.mods.modlauncher.ArgumentHandler;
 import cpw.mods.modlauncher.Launcher;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.ReportedException;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.ModLoadingStage;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.versions.forge.ForgeVersion;
 import net.minecraftforge.versions.mcp.MCPVersion;
@@ -24,10 +26,12 @@ import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 public final class TRLUtils {
 	public static final boolean IS_DEOBFUSCATED;
 	public static final boolean IS_CLIENT = FMLEnvironment.dist.isClient();
+
 	public static final String MC_VERSION = MCPVersion.getMCVersion();
 	public static final int MC_VERSION_NUMBER = Integer.parseInt(MC_VERSION.split("\\.")[1]);
 	public static final ArtifactVersion MC_ARTIFACT_VERSION =
 			new DefaultArtifactVersion(MC_VERSION);
+
 	public static final int FORGE_BUILD =
 			Integer.parseInt(ForgeVersion.getVersion().split("\\.")[2]);
 
@@ -195,6 +199,15 @@ public final class TRLUtils {
 		} catch(ClassNotFoundException ignored) {}
 
 		return null;
+	}
+
+	@SuppressWarnings("OptionalGetWithoutIsPresent")
+	public static ModLoadingStage getModLoadingStage() {
+		return ModList.get().getModContainerById("forge").get().getCurrentState();
+	}
+
+	public static boolean hasReachedStage(ModLoadingStage stage) {
+		return stage.ordinal() <= getModLoadingStage().ordinal();
 	}
 
 	public static void crashReport(String message, Throwable throwable) {
