@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import com.therandomlabs.randomlib.TRLUtils;
 import net.minecraftforge.forgespi.language.MavenVersionAdapter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.maven.artifact.versioning.VersionRange;
 
 public final class ConfigManager {
