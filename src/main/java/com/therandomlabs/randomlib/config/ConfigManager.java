@@ -14,10 +14,12 @@ import java.util.Map;
 import java.util.Set;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.electronwill.nightconfig.core.io.ParsingException;
 import com.google.common.collect.Lists;
 import com.therandomlabs.randomlib.TRLUtils;
 import net.minecraftforge.forgespi.language.MavenVersionAdapter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
 import org.apache.maven.artifact.versioning.VersionRange;
 
 public final class ConfigManager {
@@ -67,7 +69,13 @@ public final class ConfigManager {
 
 	public static void reloadFromDisk(Class<?> clazz) {
 		final ConfigData data = CONFIGS.get(clazz);
-		data.config.load();
+
+		try {
+			data.config.load();
+		} catch(ParsingException ex) {
+			data.config.entrySet().clear();
+		}
+
 		reloadFromConfig(clazz);
 	}
 
