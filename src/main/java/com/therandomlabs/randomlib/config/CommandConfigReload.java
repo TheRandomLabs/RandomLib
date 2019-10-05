@@ -9,14 +9,14 @@ import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.fml.relauncher.Side;
 
 public final class CommandConfigReload extends CommandBase {
-	public enum ReloadPhase {
-		PRE,
-		POST
-	}
-
 	@FunctionalInterface
 	public interface ConfigReloader {
 		void reload(ReloadPhase phase, ICommand command, ICommandSender sender);
+	}
+
+	public enum ReloadPhase {
+		PRE,
+		POST
 	}
 
 	private final String name;

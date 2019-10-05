@@ -10,6 +10,14 @@ import net.minecraftforge.fml.client.config.GuiConfig;
 
 public abstract class TRLGuiConfigFactory implements IModGuiFactory {
 	@Override
+	public void initialize(Minecraft mc) {}
+
+	@Override
+	public boolean hasConfigGui() {
+		return true;
+	}
+
+	@Override
 	public GuiScreen createConfigGui(GuiScreen parentScreen) {
 		try {
 			return mainConfigGuiClass().getDeclaredConstructor(GuiScreen.class).
@@ -20,14 +28,6 @@ public abstract class TRLGuiConfigFactory implements IModGuiFactory {
 		}
 
 		return null;
-	}
-
-	@Override
-	public void initialize(Minecraft mc) {}
-
-	@Override
-	public boolean hasConfigGui() {
-		return true;
 	}
 
 	@Override

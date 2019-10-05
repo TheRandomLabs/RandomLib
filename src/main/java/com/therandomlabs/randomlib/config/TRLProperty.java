@@ -35,15 +35,15 @@ final class TRLProperty {
 	final TRLTypeAdapter adapter;
 	final Class<?> clazz;
 	final Property.Type type;
+
 	final boolean isArray;
 	final boolean isResourceLocation;
 
 	final Class<?> enumClass;
 	final Enum[] enumConstants;
+
 	final String[] validValues;
 	final String[] validValuesDisplay;
-
-	Object defaultValue;
 
 	final boolean nonNull;
 
@@ -54,9 +54,10 @@ final class TRLProperty {
 	final double max;
 
 	final String[] blacklist;
-
 	final String comment;
 	final String commentOnDisk;
+
+	Object defaultValue;
 
 	@SuppressWarnings("unchecked")
 	TRLProperty(TRLCategory category, String name, Field field, String comment, String previous) {
@@ -236,7 +237,7 @@ final class TRLProperty {
 		this.max = max;
 
 		final Config.Blacklist blacklist = field.getAnnotation(Config.Blacklist.class);
-		this.blacklist = blacklist == null ? null : blacklist.value();
+		this.blacklist = blacklist == null ? new String[0] : blacklist.value();
 
 		if(isArray) {
 			for(Object element : TRLUtils.toBoxedArray(defaultValue)) {
@@ -272,6 +273,10 @@ final class TRLProperty {
 						append("\nMax: ").
 						append((long) max);
 			}
+		}
+
+		if(this.blacklist.length != 0) {
+			commentOnDisk.append("\nBlacklist: ").append(Arrays.toString(this.blacklist));
 		}
 
 		commentOnDisk.append("\nDefault: ");
