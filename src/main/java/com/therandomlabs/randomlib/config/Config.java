@@ -34,7 +34,7 @@ public @interface Config {
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
 	@interface RangeDouble {
-		double min() default Double.MIN_VALUE;
+		double min() default -Double.MAX_VALUE;
 
 		double max() default Double.MAX_VALUE;
 	}
